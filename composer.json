@@ -1,0 +1,13 @@
+{
+  "name": "gustavo/farmacia-mvc",
+  "description": "Sistema interno de farmacia em PHP MVC",
+  "type": "project",
+  "require": {
+    "php": ">=8.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "App/"
+    }
+  }
+}
