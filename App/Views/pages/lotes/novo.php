@@ -15,7 +15,7 @@ $novoProdutoQuery = http_build_query([
 			<a class="btn-inline" href="/lotes">Voltar para lotes</a>
 		<?php endif; ?>
 	</div>
-	<p class="helper-text">Se o produto ainda nao existir, cadastre agora e retorne para continuar o lote.</p>
+	<p class="helper-text">Se o produto ainda nao existir, cadastre agora e continue o lancamento do lote.</p>
 	<div class="pills">
 		<a class="btn-soft" href="/produtos/novo?<?= htmlspecialchars($novoProdutoQuery, ENT_QUOTES, 'UTF-8') ?>">Novo produto</a>
 	</div>

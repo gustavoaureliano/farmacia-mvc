@@ -3,7 +3,7 @@
 		<h2>Produtos</h2>
 		<a class="btn-inline" href="/produtos/novo">Novo produto</a>
 	</div>
-	<p class="muted">Busca hibrida por nome, codigo de barras, principio ativo e laboratorio.</p>
+	<p class="muted">Pesquise e filtre produtos por nome, codigo de barras, principio ativo e laboratorio.</p>
 
 	<div class="search-panel">
 		<div class="search-grid" style="grid-template-columns: minmax(280px, 2fr) repeat(3, minmax(140px, 1fr));">
@@ -20,7 +20,7 @@
 				<option value="0">Sem receita</option>
 			</select>
 			<select id="produto-search-ordem">
-				<option value="relevancia" selected>Ordem: relevancia</option>
+				<option value="relevancia" selected>Ordem: padrao</option>
 				<option value="nome_asc">Nome A-Z</option>
 				<option value="preco_asc">Menor preco</option>
 				<option value="preco_desc">Maior preco</option>
@@ -31,7 +31,7 @@
 		<div class="pills" style="margin-top: 10px;">
 			<button type="button" id="produto-search-limpar" class="btn-subtle">Limpar filtros</button>
 		</div>
-		<p class="helper-text" id="produto-search-status">Mostrando catalogo inicial.</p>
+		<p class="helper-text" id="produto-search-status">Lista inicial carregada.</p>
 	</div>
 
 	<div class="table-wrap">
@@ -208,7 +208,7 @@ foreach ($produtos as $produto) {
 
 		const ordered = orderItems(filtered, ordem);
 		renderRows(ordered);
-		status.textContent = `${ordered.length} resultado(s) exibidos (${ordem.replace('_', ' ')}).`;
+		status.textContent = `${ordered.length} produto(s) exibido(s).`;
 
 		localStorage.setItem(STORAGE_Q, inputQ.value);
 		localStorage.setItem(STORAGE_TIPO, tipo);
@@ -224,7 +224,7 @@ foreach ($produtos as $produto) {
 		if (q.length < 2 && tipo === '' && receita === '') {
 			serverItems = initialItems;
 			applyLocalFilter();
-			status.textContent = 'Mostrando catalogo inicial.';
+			status.textContent = 'Lista inicial carregada.';
 			return;
 		}
 
@@ -247,7 +247,7 @@ foreach ($produtos as $produto) {
 				headers: { 'Accept': 'application/json' },
 			});
 			if (!response.ok) {
-				throw new Error('Falha no endpoint de busca');
+				throw new Error('Falha na busca de produtos');
 			}
 
 			const data = await response.json();
@@ -261,7 +261,7 @@ foreach ($produtos as $produto) {
 
 			serverItems = data.items;
 			applyLocalFilter();
-			status.textContent = `Banco retornou ${data.total} registro(s).`;
+			status.textContent = `${data.total} produto(s) encontrado(s).`;
 		} catch (error) {
 			status.textContent = 'Falha ao buscar no banco. Exibindo dados locais.';
 			applyLocalFilter();
@@ -294,7 +294,7 @@ foreach ($produtos as $produto) {
 		localStorage.removeItem(STORAGE_ORDEM);
 
 		applyLocalFilter();
-		status.textContent = 'Filtros limpos. Mostrando catalogo inicial.';
+		status.textContent = 'Filtros limpos.';
 	});
 
 	const savedQ = localStorage.getItem(STORAGE_Q);

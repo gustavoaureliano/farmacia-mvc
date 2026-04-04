@@ -1,7 +1,7 @@
 <div class="card dashboard-hero">
 	<span class="badge">OPERACAO INTERNA</span>
 	<h2>Painel do Balcao</h2>
-	<p class="muted">Sistema interno para cadastro e venda com FEFO, integrado ao fluxo de atendimento da farmacia.</p>
+	<p class="muted">Sistema interno para cadastro e vendas da farmacia, com foco em agilidade no atendimento.</p>
 	<p class="helper-text">Use os atalhos para acelerar as tarefas mais frequentes no dia a dia.</p>
 	<div class="quick-actions">
 		<a href="/vendas/nova">Iniciar venda</a>
@@ -20,6 +20,6 @@
 		<span class="pill">1. Iniciar venda</span>
 		<span class="pill">2. Pesquisar produto</span>
 		<span class="pill">3. Validar receita</span>
-		<span class="pill">4. Adicionar item FEFO</span>
+		<span class="pill">4. Adicionar item a venda</span>
 	</div>
 </div>

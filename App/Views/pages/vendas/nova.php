@@ -32,7 +32,7 @@
 		</form>
 	<?php else: ?>
 		<p><strong>Venda #<?= (int) $venda['id'] ?></strong> | Total atual: R$ <?= number_format((float) $venda['valor_total'], 2, ',', '.') ?> | Itens: <?= count($itens) ?></p>
-		<p class="helper-text">Pesquise produtos com busca hibrida (banco + refinamento local) e confirme a quantidade para adicionar no fluxo FEFO.</p>
+		<p class="helper-text">Pesquise produtos, ajuste as quantidades e finalize a venda ao concluir o atendimento.</p>
 
 		<form method="POST" action="/vendas/adicionar-item" id="form-adicionar-item">
 			<input type="hidden" name="venda_id" value="<?= (int) $venda['id'] ?>">
@@ -60,7 +60,7 @@
 				<div class="pills">
 					<a class="btn-soft" id="venda-link-nova-receita" href="#">Nova receita</a>
 				</div>
-				<p class="helper-text" id="venda-receita-helper">Para produto controlado, escolha uma receita valida.</p>
+				<p class="helper-text" id="venda-receita-helper">Para medicamentos com receita, selecione uma receita valida.</p>
 			</div>
 
 			<button type="submit">Adicionar item</button>
@@ -194,7 +194,7 @@
 		const stockText = (stock) => {
 			const total = Number(stock || 0);
 			if (total <= 0) {
-				return 'Sem estoque valido';
+				return 'Sem estoque disponivel';
 			}
 			return `${total} un disponiveis`;
 		};
@@ -216,7 +216,7 @@
 			receitaSelect.required = false;
 			receitaSelect.disabled = true;
 			receitaSelect.innerHTML = '<option value="">Selecione a receita</option>';
-			receitaHelper.textContent = 'Para produto controlado, escolha uma receita valida.';
+			receitaHelper.textContent = 'Para medicamentos com receita, selecione uma receita valida.';
 		};
 
 		const loadReceitas = async (item) => {
@@ -231,14 +231,14 @@
 
 			if (clienteId <= 0) {
 				receitaSelect.disabled = true;
-				receitaSelect.innerHTML = '<option value="">Venda sem cliente. Vincule um cliente para controlados.</option>';
-				receitaHelper.textContent = 'Esta venda nao possui cliente. Produto controlado exige cliente e receita valida.';
+				receitaSelect.innerHTML = '<option value="">Venda sem cliente vinculado</option>';
+				receitaHelper.textContent = 'Vincule um cliente para selecionar receita.';
 				return;
 			}
 
 			receitaSelect.disabled = false;
 			receitaSelect.innerHTML = '<option value="">Carregando receitas...</option>';
-			receitaHelper.textContent = 'Buscando receitas validas para este cliente/produto...';
+			receitaHelper.textContent = 'Carregando receitas disponiveis...';
 
 			const params = new URLSearchParams({
 				venda_id: String(vendaId),
@@ -260,8 +260,8 @@
 				}
 
 				if (data.items.length === 0) {
-					receitaSelect.innerHTML = '<option value="">Nenhuma receita valida encontrada</option>';
-					receitaHelper.textContent = 'Cadastre uma nova receita para este cliente/produto e retorne para a venda.';
+					receitaSelect.innerHTML = '<option value="">Nenhuma receita encontrada</option>';
+					receitaHelper.textContent = 'Cadastre uma nova receita para continuar esta venda.';
 					return;
 				}
 
@@ -269,7 +269,7 @@
 					const label = `#${Number(receita.id)} - ${receita.data_receita} - ${receita.medico_nome} (${receita.crm})`;
 					return `<option value="${Number(receita.id)}">${escapeHtml(label)}</option>`;
 				}).join('');
-				receitaHelper.textContent = 'Selecione uma receita valida para continuar.';
+				receitaHelper.textContent = 'Selecione uma receita para continuar.';
 			} catch (error) {
 				receitaSelect.innerHTML = '<option value="">Falha ao carregar receitas</option>';
 				receitaHelper.textContent = 'Nao foi possivel consultar receitas agora. Tente novamente ou cadastre uma nova receita.';
@@ -366,12 +366,12 @@
 			if (q.length < 2) {
 				serverItems = initialItems;
 				applyLocalFilter();
-				status.textContent = 'Mostrando produtos do catalogo carregado.';
+				status.textContent = 'Resultados atualizados.';
 				return;
 			}
 
 			const currentRequestId = ++requestId;
-			status.textContent = 'Buscando no banco...';
+			status.textContent = 'Buscando produtos...';
 
 			const params = new URLSearchParams({ q, limit: '20', ativo: '1' });
 
@@ -381,7 +381,7 @@
 				});
 
 				if (!response.ok) {
-					throw new Error('Falha no endpoint');
+					throw new Error('Falha na busca');
 				}
 
 				const data = await response.json();
@@ -395,7 +395,7 @@
 
 				serverItems = data.items;
 				applyLocalFilter();
-				status.textContent = `Banco retornou ${data.total} registro(s).`;
+				status.textContent = `${data.total} produto(s) encontrado(s).`;
 			} catch (error) {
 				status.textContent = 'Falha na busca online. Mantendo busca local.';
 				applyLocalFilter();
@@ -416,7 +416,7 @@
 		inputSearch.addEventListener('focus', () => {
 			if (inputSearch.value.trim() === '') {
 				renderResults(serverItems.slice(0, 12));
-				status.textContent = 'Sugestoes iniciais do catalogo.';
+				status.textContent = 'Sugestoes de produtos.';
 			}
 		});
 
@@ -432,8 +432,8 @@
 			if (selectedItem && Number(selectedItem.exige_receita) === 1 && !receitaSelect.value) {
 				event.preventDefault();
 				receitaHelper.textContent = clienteId <= 0
-					? 'Produto controlado exige cliente vinculado e receita valida.'
-					: 'Selecione uma receita valida para concluir.';
+					? 'Vincule um cliente para selecionar receita.'
+					: 'Selecione uma receita para concluir.';
 				return;
 			}
 

@@ -3,7 +3,7 @@
 		<h2>Lotes e estoque</h2>
 		<a class="btn-inline" href="/lotes/novo">Novo lote</a>
 	</div>
-	<p class="muted">Resumo por produto com alerta de validade (janela de atencao: ate <?= (int) ($diasRiscoAtencao ?? 90) ?> dias).</p>
+	<p class="muted">Resumo de estoque com alertas de validade (ate <?= (int) ($diasRiscoAtencao ?? 90) ?> dias).</p>
 
 	<?php if (!empty($resumoEstoque)): ?>
 		<div class="search-panel">
@@ -16,7 +16,7 @@
 					<option value="ok">Somente OK</option>
 					<option value="sem_estoque">Somente sem estoque</option>
 				</select>
-				<p class="helper-text" id="resumo-risco-status" style="margin: 0; align-self: center;">Mostrando produtos em criticidade operacional.</p>
+				<p class="helper-text" id="resumo-risco-status" style="margin: 0; align-self: center;">Exibindo produtos com maior prioridade.</p>
 			</div>
 		</div>
 	<?php endif; ?>
@@ -108,22 +108,22 @@
 		const labelsResumo = {
 			todos: 'todos os produtos',
 			atencao_critico: 'produtos criticos e em atencao',
-			critico: 'produtos em risco critico',
+			critico: 'produtos criticos',
 			atencao: 'produtos em atencao',
-			ok: 'produtos em status OK',
-			sem_estoque: 'produtos sem estoque valido',
+			ok: 'produtos com estoque regular',
+			sem_estoque: 'produtos sem estoque disponivel',
 		};
 
 		const labelsLista = {
 			todos: 'todos os lotes',
 			critico: 'lotes criticos',
 			atencao: 'lotes em atencao',
-			ok: 'lotes em status OK',
-			sem_estoque: 'lotes sem estoque',
+			ok: 'lotes com estoque regular',
+			sem_estoque: 'lotes sem estoque disponivel',
 		};
 
 		const labelsOrdem = {
-			risco: 'risco operacional',
+			risco: 'prioridade',
 			validade_asc: 'validade mais proxima',
 			validade_desc: 'validade mais distante',
 			qtd_desc: 'maior quantidade',
@@ -162,7 +162,7 @@
 				}
 			});
 
-			resumoStatus.textContent = `${visiveis} produto(s) exibidos em ${labelsResumo[tipo] || 'filtro selecionado'}.`;
+			resumoStatus.textContent = `${visiveis} produto(s) exibido(s) em ${labelsResumo[tipo] || 'selecao atual'}.`;
 			localStorage.setItem(STORAGE_RESUMO, tipo);
 		};
 
@@ -233,7 +233,7 @@
 
 			tabelaBody.replaceChildren(...ordenadas, ...ocultas);
 
-			listaStatus.textContent = `${ordenadas.length} lote(s) exibidos em ${labelsLista[tipo] || 'filtro selecionado'}, ordenados por ${labelsOrdem[ordem] || 'criterio selecionado'}.`;
+			listaStatus.textContent = `${ordenadas.length} lote(s) exibido(s) em ${labelsLista[tipo] || 'selecao atual'}, ordenados por ${labelsOrdem[ordem] || 'ordem atual'}.`;
 
 			localStorage.setItem(STORAGE_LISTA_FILTRO, tipo);
 			localStorage.setItem(STORAGE_LISTA_ORDEM, ordem);
