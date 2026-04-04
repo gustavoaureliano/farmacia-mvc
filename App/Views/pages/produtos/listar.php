@@ -31,7 +31,7 @@
 		<div class="pills" style="margin-top: 10px;">
 			<button type="button" id="produto-search-limpar" class="btn-subtle">Limpar filtros</button>
 		</div>
-		<p class="helper-text" id="produto-search-status">Lista inicial carregada.</p>
+		<p class="helper-text" id="produto-search-status" aria-live="polite">Lista inicial carregada.</p>
 	</div>
 
 	<div class="table-wrap">

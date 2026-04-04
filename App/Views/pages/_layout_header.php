@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Farmacia MVC</title>
+	<title>BalcãoFarma</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
@@ -62,21 +62,39 @@
 
 		.brand {
 			display: flex;
-			flex-direction: column;
-			gap: 4px;
+			align-items: center;
+			gap: 0;
 		}
 
-		.brand h1 {
-			margin: 0;
-			font-family: "Sora", "Manrope", sans-serif;
-			font-size: 1.5rem;
-			line-height: 1.1;
+		.brand-link {
+			display: inline-flex;
+			align-items: center;
+			border-radius: 12px;
 		}
 
-		.brand p {
-			margin: 0;
-			font-size: 0.86rem;
-			opacity: 0.88;
+		.brand-logo {
+			display: block;
+			width: 252px;
+			height: auto;
+			max-width: 100%;
+		}
+
+		.skip-link {
+			position: absolute;
+			top: -48px;
+			left: 12px;
+			background: #ffffff;
+			color: #08365f;
+			padding: 8px 12px;
+			border-radius: 10px;
+			font-weight: 700;
+			z-index: 100;
+			text-decoration: none;
+			border: 2px solid #7cc1ff;
+		}
+
+		.skip-link:focus-visible {
+			top: 10px;
 		}
 
 		nav {
@@ -101,6 +119,16 @@
 		nav a:hover {
 			background: rgba(255, 255, 255, 0.16);
 			transform: translateY(-1px);
+		}
+
+		a:focus-visible,
+		button:focus-visible,
+		input:focus-visible,
+		select:focus-visible,
+		textarea:focus-visible,
+		summary:focus-visible {
+			outline: 3px solid #7cc1ff;
+			outline-offset: 2px;
 		}
 
 		main {
@@ -462,6 +490,10 @@
 				align-items: flex-start;
 			}
 
+			.brand-logo {
+				width: 232px;
+			}
+
 			.search-grid {
 				grid-template-columns: 1fr;
 			}
@@ -470,6 +502,10 @@
 		@media (max-width: 620px) {
 			header {
 				padding: 16px;
+			}
+
+			.brand-logo {
+				width: 206px;
 			}
 
 			main {
@@ -497,14 +533,15 @@
 	</style>
 </head>
 <body>
+<a class="skip-link" href="#conteudo-principal">Pular para conteúdo principal</a>
 <header>
 	<div class="header-row">
 		<div class="brand">
-			<h1>Farmacia MVC</h1>
-			<p>Balcao interno com foco em agilidade de atendimento</p>
+			<a class="brand-link" href="/home" aria-label="Ir para o início" title="Ir para o início">
+				<img class="brand-logo" src="/assets/logos/logo-balcaofarma-institucional.svg" alt="BalcãoFarma">
+			</a>
 		</div>
-		<nav>
-			<a href="/home">Home</a>
+		<nav aria-label="Navegação principal">
 			<a href="/produtos">Produtos</a>
 			<a href="/lotes">Lotes</a>
 			<a href="/receitas">Receitas</a>
@@ -515,12 +552,12 @@
 		</nav>
 	</div>
 </header>
-<main>
+<main id="conteudo-principal">
 <?php if (!empty($_SESSION['flash_success'])): ?>
-	<div class="msg-ok"><?= htmlspecialchars($_SESSION['flash_success'], ENT_QUOTES, 'UTF-8') ?></div>
+	<div class="msg-ok" role="status" aria-live="polite"><?= htmlspecialchars($_SESSION['flash_success'], ENT_QUOTES, 'UTF-8') ?></div>
 	<?php unset($_SESSION['flash_success']); ?>
 <?php endif; ?>
 <?php if (!empty($_SESSION['flash_error'])): ?>
-	<div class="msg-err"><?= htmlspecialchars($_SESSION['flash_error'], ENT_QUOTES, 'UTF-8') ?></div>
+	<div class="msg-err" role="alert" aria-live="assertive"><?= htmlspecialchars($_SESSION['flash_error'], ENT_QUOTES, 'UTF-8') ?></div>
 	<?php unset($_SESSION['flash_error']); ?>
 <?php endif; ?>

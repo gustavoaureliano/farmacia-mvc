@@ -16,7 +16,7 @@
 					<option value="ok">Somente OK</option>
 					<option value="sem_estoque">Somente sem estoque</option>
 				</select>
-				<p class="helper-text" id="resumo-risco-status" style="margin: 0; align-self: center;">Exibindo produtos com maior prioridade.</p>
+				<p class="helper-text" id="resumo-risco-status" style="margin: 0; align-self: center;" aria-live="polite">Exibindo produtos com maior prioridade.</p>
 			</div>
 		</div>
 	<?php endif; ?>
@@ -84,7 +84,7 @@
 					<option value="produto_asc">Produto A-Z</option>
 					<option value="id_asc">ID lote crescente</option>
 				</select>
-				<p class="helper-text" id="lista-lotes-status" style="margin: 0; align-self: center;">Mostrando todos os lotes.</p>
+				<p class="helper-text" id="lista-lotes-status" style="margin: 0; align-self: center;" aria-live="polite">Mostrando todos os lotes.</p>
 			</div>
 		</div>
 	<?php endif; ?>

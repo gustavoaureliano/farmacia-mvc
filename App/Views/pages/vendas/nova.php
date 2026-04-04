@@ -42,7 +42,7 @@
 			<div class="search-panel">
 				<label for="venda-produto-search">Produto</label>
 				<input id="venda-produto-search" placeholder="Digite nome, codigo de barras, principio ativo ou laboratorio" autocomplete="off">
-				<p class="helper-text" id="venda-search-status">Digite ao menos 2 caracteres para consultar o banco.</p>
+				<p class="helper-text" id="venda-search-status" aria-live="polite">Digite ao menos 2 caracteres para buscar produtos.</p>
 				<ul id="venda-search-results" class="search-result-list"></ul>
 				<div id="venda-produto-selecionado" class="pills" style="display: none;"></div>
 			</div>
@@ -60,7 +60,7 @@
 				<div class="pills">
 					<a class="btn-soft" id="venda-link-nova-receita" href="#">Nova receita</a>
 				</div>
-				<p class="helper-text" id="venda-receita-helper">Para medicamentos com receita, selecione uma receita valida.</p>
+				<p class="helper-text" id="venda-receita-helper" aria-live="polite">Para medicamentos com receita, selecione uma receita valida.</p>
 			</div>
 
 			<button type="submit">Adicionar item</button>
