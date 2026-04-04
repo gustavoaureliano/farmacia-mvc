@@ -4,6 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>BalcãoFarma</title>
+	<link rel="stylesheet" href="/assets/css/mobile.css">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
@@ -23,6 +24,9 @@
 			--ok-text: #166534;
 			--err-bg: #fee2e2;
 			--err-text: #991b1b;
+			--radius-sm: 10px;
+			--radius-ui: 12px;
+			--radius-card: 16px;
 			--radius-lg: 18px;
 			--radius-md: 12px;
 			--shadow: 0 16px 36px rgba(16, 40, 70, 0.08);
@@ -69,7 +73,7 @@
 		.brand-link {
 			display: inline-flex;
 			align-items: center;
-			border-radius: 12px;
+			border-radius: var(--radius-ui);
 		}
 
 		.brand-logo {
@@ -97,17 +101,17 @@
 			top: 10px;
 		}
 
-		nav {
+		.main-nav {
 			display: flex;
 			flex-wrap: wrap;
 			gap: 10px;
 		}
 
-		nav a {
+		.main-nav a {
 			display: inline-flex;
 			align-items: center;
 			padding: 8px 12px;
-			border-radius: 999px;
+			border-radius: var(--radius-ui);
 			text-decoration: none;
 			font-weight: 700;
 			font-size: 0.92rem;
@@ -116,9 +120,47 @@
 			transition: transform 0.18s ease, background-color 0.18s ease;
 		}
 
-		nav a:hover {
+		.main-nav a:hover {
 			background: rgba(255, 255, 255, 0.16);
 			transform: translateY(-1px);
+		}
+
+		.menu-toggle {
+			display: none;
+			border: 1px solid rgba(255, 255, 255, 0.36);
+			background: rgba(255, 255, 255, 0.08);
+			color: #fff;
+			border-radius: var(--radius-ui);
+			padding: 8px;
+			width: 42px;
+			height: 42px;
+		}
+
+		.menu-icon {
+			display: inline-block;
+			position: relative;
+			width: 20px;
+			height: 14px;
+		}
+
+		.menu-icon::before,
+		.menu-icon::after,
+		.menu-icon span {
+			content: "";
+			position: absolute;
+			left: 0;
+			width: 20px;
+			height: 2px;
+			background: #fff;
+			border-radius: 999px;
+		}
+
+		.menu-icon::before { top: 0; }
+		.menu-icon span { top: 6px; }
+		.menu-icon::after { top: 12px; }
+
+		.nav-backdrop {
+			display: none;
 		}
 
 		a:focus-visible,
@@ -140,7 +182,7 @@
 		.card {
 			background: linear-gradient(170deg, #ffffff, #f9fcff 80%);
 			border: 1px solid var(--line);
-			border-radius: var(--radius-lg);
+			border-radius: var(--radius-card);
 			padding: 18px;
 			margin-bottom: 16px;
 			box-shadow: var(--shadow);
@@ -184,7 +226,7 @@
 			align-items: center;
 			justify-content: center;
 			padding: 10px 14px;
-			border-radius: 11px;
+			border-radius: var(--radius-ui);
 			text-decoration: none;
 			font-weight: 700;
 			border: 0;
@@ -200,7 +242,7 @@
 			align-items: center;
 			justify-content: center;
 			padding: 9px 12px;
-			border-radius: 10px;
+			border-radius: var(--radius-ui);
 			text-decoration: none;
 			font-weight: 700;
 			border: 1px solid #c7d9ea;
@@ -217,7 +259,7 @@
 			align-items: center;
 			justify-content: center;
 			padding: 8px 10px;
-			border-radius: 10px;
+			border-radius: var(--radius-ui);
 			text-decoration: none;
 			font-weight: 600;
 			font-size: 0.9rem;
@@ -252,7 +294,7 @@
 		.table-wrap {
 			overflow-x: auto;
 			border: 1px solid var(--line);
-			border-radius: 12px;
+			border-radius: var(--radius-card);
 		}
 
 		table {
@@ -290,7 +332,7 @@
 		textarea {
 			padding: 10px;
 			border: 1px solid #c6d5e4;
-			border-radius: 10px;
+			border-radius: var(--radius-sm);
 			font: inherit;
 			background: #fff;
 			color: var(--text);
@@ -307,7 +349,7 @@
 		.search-panel {
 			background: var(--surface-soft);
 			border: 1px solid #d4e4f3;
-			border-radius: 14px;
+			border-radius: var(--radius-card);
 			padding: 12px;
 			margin-bottom: 14px;
 		}
@@ -323,7 +365,7 @@
 			padding: 0;
 			list-style: none;
 			border: 1px solid #d6e4f0;
-			border-radius: 12px;
+			border-radius: var(--radius-card);
 			max-height: 260px;
 			overflow: auto;
 			background: #fff;
@@ -405,7 +447,7 @@
 		.summary-card {
 			background: #fff;
 			border: 1px solid #dbe7f2;
-			border-radius: 12px;
+			border-radius: var(--radius-card);
 			padding: 12px;
 		}
 
@@ -421,7 +463,7 @@
 		.msg-ok,
 		.msg-err {
 			padding: 11px 12px;
-			border-radius: 11px;
+			border-radius: var(--radius-ui);
 			margin-bottom: 14px;
 			font-weight: 600;
 		}
@@ -448,7 +490,7 @@
 		.quick-actions a {
 			background: #fff;
 			border: 1px solid #d3e1ee;
-			border-radius: 12px;
+			border-radius: var(--radius-ui);
 			padding: 12px;
 			text-decoration: none;
 			font-weight: 700;
@@ -485,15 +527,6 @@
 		}
 
 		@media (max-width: 920px) {
-			.header-row {
-				flex-direction: column;
-				align-items: flex-start;
-			}
-
-			.brand-logo {
-				width: 232px;
-			}
-
 			.search-grid {
 				grid-template-columns: 1fr;
 			}
@@ -521,12 +554,9 @@
 				min-width: 560px;
 			}
 
-			nav {
-				width: 100%;
-			}
-
-			nav a {
-				flex: 1;
+			.menu-toggle {
+				display: inline-flex;
+				align-items: center;
 				justify-content: center;
 			}
 		}
@@ -541,7 +571,10 @@
 				<img class="brand-logo" src="/assets/logos/logo-balcaofarma-institucional.svg" alt="BalcãoFarma">
 			</a>
 		</div>
-		<nav aria-label="Navegação principal">
+		<button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="main-nav">
+			<span class="menu-icon"><span></span></span>
+		</button>
+		<nav id="main-nav" class="main-nav" aria-label="Navegação principal">
 			<a href="/produtos">Produtos</a>
 			<a href="/lotes">Lotes</a>
 			<a href="/receitas">Receitas</a>
@@ -550,6 +583,7 @@
 			<a href="/vendas/nova">Nova venda</a>
 			<a href="/vendas/listar">Historico vendas</a>
 		</nav>
+		<div class="nav-backdrop" hidden></div>
 	</div>
 </header>
 <main id="conteudo-principal">
