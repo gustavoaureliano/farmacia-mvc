@@ -9,13 +9,14 @@
 		<div class="search-panel">
 			<div class="search-grid" style="grid-template-columns: minmax(220px, 1fr) minmax(180px, 1fr);">
 				<select id="resumo-risco-filtro">
+					<option value="atencao_critico" selected>Critico + Atencao</option>
 					<option value="todos">Mostrar todos</option>
 					<option value="critico">Somente criticos</option>
 					<option value="atencao">Somente atencao</option>
 					<option value="ok">Somente OK</option>
 					<option value="sem_estoque">Somente sem estoque</option>
 				</select>
-				<p class="helper-text" id="resumo-risco-status" style="margin: 0; align-self: center;">Mostrando todos os produtos.</p>
+				<p class="helper-text" id="resumo-risco-status" style="margin: 0; align-self: center;">Mostrando produtos em criticidade operacional.</p>
 			</div>
 		</div>
 	<?php endif; ?>
@@ -65,59 +66,205 @@
 		<?php endif; ?>
 	</div>
 
-	<?php if (!empty($resumoEstoque)): ?>
-		<script>
-		window.addEventListener('DOMContentLoaded', () => {
-			const filtro = document.getElementById('resumo-risco-filtro');
-			const status = document.getElementById('resumo-risco-status');
-			const cards = Array.from(document.querySelectorAll('#resumo-estoque-grid .summary-card[data-risco]'));
-			const linhasTabela = Array.from(document.querySelectorAll('.table-wrap tbody tr[data-risco]'));
+	<?php if (!empty($lotes)): ?>
+		<div class="search-panel">
+			<div class="search-grid" style="grid-template-columns: minmax(190px, 1fr) minmax(220px, 1fr) minmax(240px, 1fr);">
+				<select id="lista-risco-filtro">
+					<option value="todos" selected>Todos os riscos</option>
+					<option value="critico">Somente criticos</option>
+					<option value="atencao">Somente atencao</option>
+					<option value="ok">Somente OK</option>
+					<option value="sem_estoque">Somente sem estoque</option>
+				</select>
+				<select id="lista-ordem">
+					<option value="risco" selected>Ordenar por risco</option>
+					<option value="validade_asc">Validade mais proxima</option>
+					<option value="validade_desc">Validade mais distante</option>
+					<option value="qtd_desc">Maior quantidade</option>
+					<option value="produto_asc">Produto A-Z</option>
+					<option value="id_asc">ID lote crescente</option>
+				</select>
+				<p class="helper-text" id="lista-lotes-status" style="margin: 0; align-self: center;">Mostrando todos os lotes.</p>
+			</div>
+		</div>
+	<?php endif; ?>
 
-			if (!filtro || !status || cards.length === 0) {
+	<script>
+	window.addEventListener('DOMContentLoaded', () => {
+		const STORAGE_RESUMO = 'lotesResumoFiltro';
+		const STORAGE_LISTA_FILTRO = 'lotesListaFiltro';
+		const STORAGE_LISTA_ORDEM = 'lotesListaOrdem';
+
+		const resumoFiltro = document.getElementById('resumo-risco-filtro');
+		const resumoStatus = document.getElementById('resumo-risco-status');
+		const cards = Array.from(document.querySelectorAll('#resumo-estoque-grid .summary-card[data-risco]'));
+
+		const listaFiltro = document.getElementById('lista-risco-filtro');
+		const listaOrdem = document.getElementById('lista-ordem');
+		const listaStatus = document.getElementById('lista-lotes-status');
+		const tabelaBody = document.querySelector('.table-wrap tbody');
+		const linhasTabela = tabelaBody ? Array.from(tabelaBody.querySelectorAll('tr[data-risco]')) : [];
+
+		const labelsResumo = {
+			todos: 'todos os produtos',
+			atencao_critico: 'produtos criticos e em atencao',
+			critico: 'produtos em risco critico',
+			atencao: 'produtos em atencao',
+			ok: 'produtos em status OK',
+			sem_estoque: 'produtos sem estoque valido',
+		};
+
+		const labelsLista = {
+			todos: 'todos os lotes',
+			critico: 'lotes criticos',
+			atencao: 'lotes em atencao',
+			ok: 'lotes em status OK',
+			sem_estoque: 'lotes sem estoque',
+		};
+
+		const labelsOrdem = {
+			risco: 'risco operacional',
+			validade_asc: 'validade mais proxima',
+			validade_desc: 'validade mais distante',
+			qtd_desc: 'maior quantidade',
+			produto_asc: 'produto A-Z',
+			id_asc: 'ID crescente',
+		};
+
+		const rankRisco = { critico: 0, atencao: 1, ok: 2, sem_estoque: 3 };
+
+		const matchFiltro = (tipo, risco) => {
+			if (tipo === 'todos') {
+				return true;
+			}
+
+			if (tipo === 'atencao_critico') {
+				return risco === 'critico' || risco === 'atencao';
+			}
+
+			return risco === tipo;
+		};
+
+		const aplicarResumo = () => {
+			if (!resumoFiltro || !resumoStatus || cards.length === 0) {
 				return;
 			}
 
-			const labels = {
-				todos: 'todos os produtos',
-				critico: 'produtos em risco critico',
-				atencao: 'produtos em atencao',
-				ok: 'produtos em status OK',
-				sem_estoque: 'produtos sem estoque valido',
-			};
+			const tipo = resumoFiltro.value || 'atencao_critico';
+			let visiveis = 0;
 
-			const aplicarFiltro = () => {
-				const tipo = filtro.value || 'todos';
-				let visiveis = 0;
-				let linhasVisiveis = 0;
+			cards.forEach((card) => {
+				const risco = card.getAttribute('data-risco') || '';
+				const mostrar = matchFiltro(tipo, risco);
+				card.style.display = mostrar ? '' : 'none';
+				if (mostrar) {
+					visiveis += 1;
+				}
+			});
 
-				cards.forEach((card) => {
-					const risco = card.getAttribute('data-risco') || '';
-					const mostrar = tipo === 'todos' || risco === tipo;
-					card.style.display = mostrar ? '' : 'none';
-					if (mostrar) {
-						visiveis += 1;
-					}
-				});
+			resumoStatus.textContent = `${visiveis} produto(s) exibidos em ${labelsResumo[tipo] || 'filtro selecionado'}.`;
+			localStorage.setItem(STORAGE_RESUMO, tipo);
+		};
 
-				linhasTabela.forEach((linha) => {
-					const risco = linha.getAttribute('data-risco') || '';
-					const vencido = linha.getAttribute('data-vencido') === '1';
-					const mostrar = tipo === 'todos' || risco === tipo;
-					linha.style.display = mostrar ? '' : 'none';
-					linha.style.opacity = tipo === 'todos' && vencido ? '0.52' : '1';
-					if (mostrar) {
-						linhasVisiveis += 1;
-					}
-				});
+		const ordenarVisiveis = (visiveis, ordem) => {
+			const toNum = (value) => Number(value || 0);
+			const toStr = (value) => String(value || '');
 
-				status.textContent = `${visiveis} produto(s) e ${linhasVisiveis} lote(s) exibidos em ${labels[tipo] || 'filtro selecionado'}.`;
-			};
+			const sorted = [...visiveis];
+			sorted.sort((a, b) => {
+				if (ordem === 'validade_asc') {
+					return toNum(a.dataset.dias) - toNum(b.dataset.dias);
+				}
 
-			filtro.addEventListener('change', aplicarFiltro);
-			aplicarFiltro();
-		});
-		</script>
-	<?php endif; ?>
+				if (ordem === 'validade_desc') {
+					return toNum(b.dataset.dias) - toNum(a.dataset.dias);
+				}
+
+				if (ordem === 'qtd_desc') {
+					return toNum(b.dataset.qtd) - toNum(a.dataset.qtd);
+				}
+
+				if (ordem === 'produto_asc') {
+					return toStr(a.dataset.produto).localeCompare(toStr(b.dataset.produto), 'pt-BR');
+				}
+
+				if (ordem === 'id_asc') {
+					return toNum(a.dataset.id) - toNum(b.dataset.id);
+				}
+
+				const riscoA = rankRisco[toStr(a.dataset.risco)] ?? 99;
+				const riscoB = rankRisco[toStr(b.dataset.risco)] ?? 99;
+				if (riscoA !== riscoB) {
+					return riscoA - riscoB;
+				}
+
+				return toNum(a.dataset.dias) - toNum(b.dataset.dias);
+			});
+
+			return sorted;
+		};
+
+		const aplicarLista = () => {
+			if (!listaFiltro || !listaOrdem || !listaStatus || !tabelaBody || linhasTabela.length === 0) {
+				return;
+			}
+
+			const tipo = listaFiltro.value || 'todos';
+			const ordem = listaOrdem.value || 'risco';
+
+			const visiveis = linhasTabela.filter((linha) => {
+				const risco = linha.dataset.risco || '';
+				return matchFiltro(tipo, risco);
+			});
+
+			const ocultas = linhasTabela.filter((linha) => !visiveis.includes(linha));
+			const ordenadas = ordenarVisiveis(visiveis, ordem);
+
+			ordenadas.forEach((linha) => {
+				const vencido = linha.dataset.vencido === '1';
+				linha.style.display = '';
+				linha.style.opacity = tipo === 'todos' && vencido ? '0.52' : '1';
+			});
+
+			ocultas.forEach((linha) => {
+				linha.style.display = 'none';
+				linha.style.opacity = '1';
+			});
+
+			tabelaBody.replaceChildren(...ordenadas, ...ocultas);
+
+			listaStatus.textContent = `${ordenadas.length} lote(s) exibidos em ${labelsLista[tipo] || 'filtro selecionado'}, ordenados por ${labelsOrdem[ordem] || 'criterio selecionado'}.`;
+
+			localStorage.setItem(STORAGE_LISTA_FILTRO, tipo);
+			localStorage.setItem(STORAGE_LISTA_ORDEM, ordem);
+		};
+
+		if (resumoFiltro) {
+			const salvoResumo = localStorage.getItem(STORAGE_RESUMO);
+			if (salvoResumo && Array.from(resumoFiltro.options).some((opt) => opt.value === salvoResumo)) {
+				resumoFiltro.value = salvoResumo;
+			}
+			resumoFiltro.addEventListener('change', aplicarResumo);
+			aplicarResumo();
+		}
+
+		if (listaFiltro && listaOrdem) {
+			const salvoListaFiltro = localStorage.getItem(STORAGE_LISTA_FILTRO);
+			if (salvoListaFiltro && Array.from(listaFiltro.options).some((opt) => opt.value === salvoListaFiltro)) {
+				listaFiltro.value = salvoListaFiltro;
+			}
+
+			const salvoListaOrdem = localStorage.getItem(STORAGE_LISTA_ORDEM);
+			if (salvoListaOrdem && Array.from(listaOrdem.options).some((opt) => opt.value === salvoListaOrdem)) {
+				listaOrdem.value = salvoListaOrdem;
+			}
+
+			listaFiltro.addEventListener('change', aplicarLista);
+			listaOrdem.addEventListener('change', aplicarLista);
+			aplicarLista();
+		}
+	});
+	</script>
 
 	<div class="table-wrap">
 		<table>
@@ -161,7 +308,14 @@
 							$classeTabela = 'pill-atencao';
 						}
 						?>
-						<tr data-risco="<?= htmlspecialchars($riscoTabela, ENT_QUOTES, 'UTF-8') ?>" data-vencido="<?= $dias < 0 ? '1' : '0' ?>">
+						<tr
+							data-risco="<?= htmlspecialchars($riscoTabela, ENT_QUOTES, 'UTF-8') ?>"
+							data-vencido="<?= $dias < 0 ? '1' : '0' ?>"
+							data-dias="<?= $dias ?>"
+							data-qtd="<?= $qtd ?>"
+							data-produto="<?= htmlspecialchars(strtolower((string) $lote['produto_nome']), ENT_QUOTES, 'UTF-8') ?>"
+							data-id="<?= (int) $lote['id'] ?>"
+						>
 							<td><?= (int) $lote['id'] ?></td>
 							<td><?= htmlspecialchars($lote['produto_nome'], ENT_QUOTES, 'UTF-8') ?></td>
 							<td><?= htmlspecialchars($lote['numero_lote'], ENT_QUOTES, 'UTF-8') ?></td>

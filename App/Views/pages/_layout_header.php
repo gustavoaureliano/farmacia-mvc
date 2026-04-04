@@ -184,11 +184,41 @@
 			background: #e7f3ff;
 		}
 
+		.btn-subtle {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			padding: 8px 10px;
+			border-radius: 10px;
+			text-decoration: none;
+			font-weight: 600;
+			font-size: 0.9rem;
+			border: 1px solid #d7e4ef;
+			background: #f8fbfe;
+			color: #5b7085;
+			cursor: pointer;
+			box-shadow: none;
+			transform: none;
+		}
+
+		.btn-subtle:hover {
+			background: #f1f6fb;
+			color: #425a72;
+			box-shadow: none;
+			transform: none;
+		}
+
 		.btn-inline:hover,
 		button:hover,
 		.button-link:hover {
 			transform: translateY(-1px);
 			box-shadow: 0 11px 22px rgba(12, 73, 130, 0.28);
+		}
+
+		button.btn-subtle,
+		button.btn-subtle:hover {
+			transform: none;
+			box-shadow: none;
 		}
 
 		.table-wrap {

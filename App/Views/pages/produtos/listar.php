@@ -6,7 +6,7 @@
 	<p class="muted">Busca hibrida por nome, codigo de barras, principio ativo e laboratorio.</p>
 
 	<div class="search-panel">
-		<div class="search-grid">
+		<div class="search-grid" style="grid-template-columns: minmax(280px, 2fr) repeat(3, minmax(140px, 1fr));">
 			<input id="produto-search-q" placeholder="Buscar por nome, codigo ou principio ativo" autocomplete="off">
 			<select id="produto-search-tipo">
 				<option value="">Todos os tipos</option>
@@ -19,6 +19,17 @@
 				<option value="1">Com receita</option>
 				<option value="0">Sem receita</option>
 			</select>
+			<select id="produto-search-ordem">
+				<option value="relevancia" selected>Ordem: relevancia</option>
+				<option value="nome_asc">Nome A-Z</option>
+				<option value="preco_asc">Menor preco</option>
+				<option value="preco_desc">Maior preco</option>
+				<option value="estoque_desc">Maior estoque</option>
+				<option value="id_asc">ID crescente</option>
+			</select>
+		</div>
+		<div class="pills" style="margin-top: 10px;">
+			<button type="button" id="produto-search-limpar" class="btn-subtle">Limpar filtros</button>
 		</div>
 		<p class="helper-text" id="produto-search-status">Mostrando catalogo inicial.</p>
 	</div>
@@ -80,12 +91,19 @@ foreach ($produtos as $produto) {
 	const inputQ = document.getElementById('produto-search-q');
 	const inputTipo = document.getElementById('produto-search-tipo');
 	const inputReceita = document.getElementById('produto-search-receita');
+	const inputOrdem = document.getElementById('produto-search-ordem');
+	const btnLimpar = document.getElementById('produto-search-limpar');
 	const tbody = document.getElementById('produto-list-body');
 	const status = document.getElementById('produto-search-status');
 
-	if (!inputQ || !inputTipo || !inputReceita || !tbody || !status) {
+	if (!inputQ || !inputTipo || !inputReceita || !inputOrdem || !btnLimpar || !tbody || !status) {
 		return;
 	}
+
+	const STORAGE_Q = 'produtosFiltroQ';
+	const STORAGE_TIPO = 'produtosFiltroTipo';
+	const STORAGE_RECEITA = 'produtosFiltroReceita';
+	const STORAGE_ORDEM = 'produtosFiltroOrdem';
 
 	const initialItems = <?= json_encode($produtosBuscaInicial, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 	let serverItems = initialItems;
@@ -115,6 +133,36 @@ foreach ($produtos as $produto) {
 		return number.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 	};
 
+	const orderItems = (items, order) => {
+		const sorted = [...items];
+
+		sorted.sort((a, b) => {
+			if (order === 'nome_asc') {
+				return String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR');
+			}
+
+			if (order === 'preco_asc') {
+				return Number(a.preco_atual || 0) - Number(b.preco_atual || 0);
+			}
+
+			if (order === 'preco_desc') {
+				return Number(b.preco_atual || 0) - Number(a.preco_atual || 0);
+			}
+
+			if (order === 'estoque_desc') {
+				return Number(b.estoque_disponivel || 0) - Number(a.estoque_disponivel || 0);
+			}
+
+			if (order === 'id_asc') {
+				return Number(a.id || 0) - Number(b.id || 0);
+			}
+
+			return 0;
+		});
+
+		return sorted;
+	};
+
 	const renderRows = (items) => {
 		if (!Array.isArray(items) || items.length === 0) {
 			tbody.innerHTML = '<tr><td colspan="7">Nenhum produto encontrado.</td></tr>';
@@ -139,6 +187,7 @@ foreach ($produtos as $produto) {
 		const qNorm = normalizeText(inputQ.value);
 		const tipo = inputTipo.value;
 		const receita = inputReceita.value;
+		const ordem = inputOrdem.value || 'relevancia';
 
 		const filtered = serverItems.filter((item) => {
 			if (tipo !== '' && item.tipo !== tipo) {
@@ -157,8 +206,14 @@ foreach ($produtos as $produto) {
 			return joined.includes(qNorm);
 		});
 
-		renderRows(filtered);
-		status.textContent = `${filtered.length} resultado(s) exibidos.`;
+		const ordered = orderItems(filtered, ordem);
+		renderRows(ordered);
+		status.textContent = `${ordered.length} resultado(s) exibidos (${ordem.replace('_', ' ')}).`;
+
+		localStorage.setItem(STORAGE_Q, inputQ.value);
+		localStorage.setItem(STORAGE_TIPO, tipo);
+		localStorage.setItem(STORAGE_RECEITA, receita);
+		localStorage.setItem(STORAGE_ORDEM, ordem);
 	};
 
 	const fetchFromServer = async () => {
@@ -225,7 +280,48 @@ foreach ($produtos as $produto) {
 	inputQ.addEventListener('input', scheduleServerSearch);
 	inputTipo.addEventListener('change', scheduleServerSearch);
 	inputReceita.addEventListener('change', scheduleServerSearch);
+	inputOrdem.addEventListener('change', applyLocalFilter);
+	btnLimpar.addEventListener('click', () => {
+		inputQ.value = '';
+		inputTipo.value = '';
+		inputReceita.value = '';
+		inputOrdem.value = 'relevancia';
+		serverItems = initialItems;
 
-	renderRows(initialItems);
+		localStorage.removeItem(STORAGE_Q);
+		localStorage.removeItem(STORAGE_TIPO);
+		localStorage.removeItem(STORAGE_RECEITA);
+		localStorage.removeItem(STORAGE_ORDEM);
+
+		applyLocalFilter();
+		status.textContent = 'Filtros limpos. Mostrando catalogo inicial.';
+	});
+
+	const savedQ = localStorage.getItem(STORAGE_Q);
+	const savedTipo = localStorage.getItem(STORAGE_TIPO);
+	const savedReceita = localStorage.getItem(STORAGE_RECEITA);
+	const savedOrdem = localStorage.getItem(STORAGE_ORDEM);
+
+	if (savedQ !== null) {
+		inputQ.value = savedQ;
+	}
+
+	if (savedTipo !== null && Array.from(inputTipo.options).some((opt) => opt.value === savedTipo)) {
+		inputTipo.value = savedTipo;
+	}
+
+	if (savedReceita !== null && Array.from(inputReceita.options).some((opt) => opt.value === savedReceita)) {
+		inputReceita.value = savedReceita;
+	}
+
+	if (savedOrdem !== null && Array.from(inputOrdem.options).some((opt) => opt.value === savedOrdem)) {
+		inputOrdem.value = savedOrdem;
+	}
+
+	if (inputQ.value.trim().length >= 2 || inputTipo.value !== '' || inputReceita.value !== '') {
+		scheduleServerSearch();
+	} else {
+		applyLocalFilter();
+	}
 })();
 </script>
