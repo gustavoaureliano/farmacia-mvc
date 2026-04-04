@@ -5,15 +5,15 @@ $ordemAtual = is_string($ordem ?? null) ? $ordem : 'data_desc';
 $vendaIdAtual = (int) ($filtrosAtuais['venda_id'] ?? 0);
 $dataInicio = (string) ($filtrosAtuais['data_inicio'] ?? '');
 $dataFim = (string) ($filtrosAtuais['data_fim'] ?? '');
-$clienteAtual = (int) ($filtrosAtuais['cliente_id'] ?? 0);
-$funcionarioAtual = (int) ($filtrosAtuais['funcionario_id'] ?? 0);
+$clienteAtual = (string) ($filtrosAtuais['cliente_id'] ?? '');
+$funcionarioAtual = (string) ($filtrosAtuais['funcionario_id'] ?? '');
 
 $queryBase = [
 	'venda_id' => $vendaIdAtual > 0 ? (string) $vendaIdAtual : '',
 	'data_inicio' => $dataInicio,
 	'data_fim' => $dataFim,
-	'cliente_id' => $clienteAtual > 0 ? (string) $clienteAtual : '',
-	'funcionario_id' => $funcionarioAtual > 0 ? (string) $funcionarioAtual : '',
+	'cliente_id' => $clienteAtual,
+	'funcionario_id' => $funcionarioAtual,
 	'ordem' => $ordemAtual,
 ];
 
@@ -41,8 +41,8 @@ $queryResumo['modo'] = 'resumo';
 			<select name="cliente_id">
 				<option value="">Cliente: todos</option>
 				<?php foreach ($clientes as $cliente): ?>
-					<?php $id = (int) $cliente['id']; ?>
-					<option value="<?= $id ?>" <?= $clienteAtual === $id ? 'selected' : '' ?>>
+					<?php $id = (string) $cliente['cpf']; ?>
+					<option value="<?= htmlspecialchars($id, ENT_QUOTES, 'UTF-8') ?>" <?= $clienteAtual === $id ? 'selected' : '' ?>>
 						<?= htmlspecialchars($cliente['nome'], ENT_QUOTES, 'UTF-8') ?>
 					</option>
 				<?php endforeach; ?>
@@ -50,8 +50,8 @@ $queryResumo['modo'] = 'resumo';
 			<select name="funcionario_id">
 				<option value="">Funcionario: todos</option>
 				<?php foreach ($funcionarios as $funcionario): ?>
-					<?php $id = (int) $funcionario['id']; ?>
-					<option value="<?= $id ?>" <?= $funcionarioAtual === $id ? 'selected' : '' ?>>
+					<?php $id = (string) $funcionario['cpf']; ?>
+					<option value="<?= htmlspecialchars($id, ENT_QUOTES, 'UTF-8') ?>" <?= $funcionarioAtual === $id ? 'selected' : '' ?>>
 						<?= htmlspecialchars($funcionario['nome'], ENT_QUOTES, 'UTF-8') ?>
 					</option>
 				<?php endforeach; ?>
@@ -79,30 +79,45 @@ $queryResumo['modo'] = 'resumo';
 				<tr>
 					<th>ID</th>
 					<th>Data</th>
+					<th>Status</th>
 					<th>Cliente</th>
 					<th>Funcionario</th>
 					<th>Itens</th>
 					<th>Total</th>
+					<th>Acoes</th>
 					<th>Detalhes</th>
 				</tr>
 			</thead>
 			<tbody>
 				<?php if (empty($vendas)): ?>
-					<tr><td colspan="7">Nenhuma venda encontrada para os filtros selecionados.</td></tr>
+					<tr><td colspan="9">Nenhuma venda encontrada para os filtros selecionados.</td></tr>
 				<?php else: ?>
 					<?php foreach ($vendas as $venda): ?>
 						<?php
 						$vendaId = (int) $venda['id'];
 						$itensVenda = $itensPorVenda[$vendaId] ?? [];
 						$clienteNome = $venda['cliente_nome'] !== null ? (string) $venda['cliente_nome'] : 'Sem cliente';
+						$statusVenda = (string) ($venda['status'] ?? 'aberta');
 						?>
 						<tr>
 							<td><?= $vendaId ?></td>
 							<td><?= htmlspecialchars((string) $venda['data_venda'], ENT_QUOTES, 'UTF-8') ?></td>
+							<td><?= htmlspecialchars(ucfirst($statusVenda), ENT_QUOTES, 'UTF-8') ?></td>
 							<td><?= htmlspecialchars($clienteNome, ENT_QUOTES, 'UTF-8') ?></td>
 							<td><?= htmlspecialchars((string) $venda['funcionario_nome'], ENT_QUOTES, 'UTF-8') ?></td>
 							<td><?= (int) $venda['total_itens'] ?></td>
 							<td>R$ <?= number_format((float) $venda['valor_total'], 2, ',', '.') ?></td>
+							<td>
+								<?php if ($statusVenda !== 'cancelada'): ?>
+									<form method="POST" action="/vendas/cancelar" style="margin: 0;">
+										<input type="hidden" name="venda_id" value="<?= $vendaId ?>">
+										<input type="hidden" name="return_to" value="<?= htmlspecialchars('/vendas/listar?venda_id=' . $vendaId, ENT_QUOTES, 'UTF-8') ?>">
+										<button type="submit" class="btn-subtle" onclick="return confirm('Cancelar a venda #<?= $vendaId ?>? O estoque sera devolvido e receitas vinculadas serao liberadas.');">Cancelar</button>
+									</form>
+								<?php else: ?>
+									<span class="helper-text">-</span>
+								<?php endif; ?>
+							</td>
 							<td>
 								<details>
 									<summary>Ver itens (<?= count($itensVenda) ?>)</summary>

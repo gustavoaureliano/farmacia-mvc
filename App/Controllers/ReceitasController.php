@@ -46,14 +46,14 @@ class ReceitasController extends Controller
 
 	private function novo(): void
 	{
-		$clienteId = (int) ($this->request['cliente_id'] ?? 0);
-		$produtoId = (int) ($this->request['produto_id'] ?? 0);
+		$clienteId = trim((string) ($this->request['cliente_id'] ?? ''));
+		$produtoId = trim((string) ($this->request['produto_id'] ?? ''));
 		$returnTo = $this->sanitizeInternalPath((string) ($this->request['return_to'] ?? ''));
 
 		$this->addParam('clientes', $this->clienteDAO->listar());
 		$this->addParam('produtos', $this->produtoDAO->listar());
-		$this->addParam('clienteIdSelecionado', $clienteId > 0 ? $clienteId : null);
-		$this->addParam('produtoIdSelecionado', $produtoId > 0 ? $produtoId : null);
+		$this->addParam('clienteIdSelecionado', $clienteId !== '' ? $clienteId : null);
+		$this->addParam('produtoIdSelecionado', $produtoId !== '' ? $produtoId : null);
 		$this->addParam('returnTo', $returnTo);
 		$this->render('receitas/novo');
 	}
@@ -61,8 +61,8 @@ class ReceitasController extends Controller
 	private function salvar(): void
 	{
 		$returnTo = $this->sanitizeInternalPath((string) ($this->request['return_to'] ?? ''));
-		$clienteId = (int) ($this->request['cliente_id'] ?? 0);
-		$produtoId = (int) ($this->request['produto_id'] ?? 0);
+		$clienteId = trim((string) ($this->request['cliente_id'] ?? ''));
+		$produtoId = trim((string) ($this->request['produto_id'] ?? ''));
 
 		$data = [
 			'cliente_id' => $clienteId,
@@ -74,7 +74,7 @@ class ReceitasController extends Controller
 
 		$posologia = trim((string) ($this->request['posologia'] ?? ''));
 
-		if ($data['cliente_id'] <= 0 || $data['medico_nome'] === '' || $data['crm'] === '' || $data['data_receita'] === '' || $produtoId <= 0) {
+		if ($data['cliente_id'] === '' || $data['medico_nome'] === '' || $data['crm'] === '' || $data['data_receita'] === '' || $produtoId === '') {
 			$_SESSION['flash_error'] = 'Informe cliente, medico, CRM, data e produto da receita.';
 			$this->redirect($this->buildNovoUrl($returnTo, $clienteId, $produtoId));
 		}
@@ -100,17 +100,17 @@ class ReceitasController extends Controller
 		}
 	}
 
-	private function buildNovoUrl(?string $returnTo, int $clienteId, int $produtoId): string
+	private function buildNovoUrl(?string $returnTo, string $clienteId, string $produtoId): string
 	{
 		$params = [];
 		if ($returnTo !== null) {
 			$params['return_to'] = $returnTo;
 		}
-		if ($clienteId > 0) {
-			$params['cliente_id'] = (string) $clienteId;
+		if ($clienteId !== '') {
+			$params['cliente_id'] = $clienteId;
 		}
-		if ($produtoId > 0) {
-			$params['produto_id'] = (string) $produtoId;
+		if ($produtoId !== '') {
+			$params['produto_id'] = $produtoId;
 		}
 
 		if (empty($params)) {

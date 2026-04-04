@@ -1,7 +1,7 @@
 <div class="card">
 	<div class="section-head">
-		<h2>Lotes e estoque</h2>
-		<a class="btn-inline" href="/lotes/novo">Novo lote</a>
+		<h2>Estoque</h2>
+		<a class="btn-inline" href="/estoque/novo">Nova entrada</a>
 	</div>
 	<p class="muted">Resumo de estoque com alertas de validade (ate <?= (int) ($diasRiscoAtencao ?? 90) ?> dias).</p>
 
@@ -52,11 +52,11 @@
 					<div class="pills" style="margin: 6px 0;">
 						<span class="pill <?= $classe ?>"><?= $label ?></span>
 						<span class="pill">Estoque: <?= $estoque ?></span>
-						<span class="pill">Lotes: <?= (int) ($resumo['lotes_validos'] ?? 0) ?></span>
+						<span class="pill">Entradas: <?= (int) ($resumo['lotes_validos'] ?? 0) ?></span>
 					</div>
 					<p>
 						<?php if ($dias === null): ?>
-							Sem lote valido para venda.
+							Sem entrada valida para venda.
 						<?php else: ?>
 							Proximo vencimento em <?= $dias ?> dia(s): <?= htmlspecialchars((string) $resumo['proxima_validade'], ENT_QUOTES, 'UTF-8') ?>.
 						<?php endif; ?>
@@ -82,9 +82,9 @@
 					<option value="validade_desc">Validade mais distante</option>
 					<option value="qtd_desc">Maior quantidade</option>
 					<option value="produto_asc">Produto A-Z</option>
-					<option value="id_asc">ID lote crescente</option>
+					<option value="lote_asc">Lote A-Z</option>
 				</select>
-				<p class="helper-text" id="lista-lotes-status" style="margin: 0; align-self: center;" aria-live="polite">Mostrando todos os lotes.</p>
+				<p class="helper-text" id="lista-lotes-status" style="margin: 0; align-self: center;" aria-live="polite">Mostrando todo o estoque.</p>
 			</div>
 		</div>
 	<?php endif; ?>
@@ -115,11 +115,11 @@
 		};
 
 		const labelsLista = {
-			todos: 'todos os lotes',
-			critico: 'lotes criticos',
-			atencao: 'lotes em atencao',
-			ok: 'lotes com estoque regular',
-			sem_estoque: 'lotes sem estoque disponivel',
+			todos: 'todo o estoque',
+			critico: 'itens criticos',
+			atencao: 'itens em atencao',
+			ok: 'itens com estoque regular',
+			sem_estoque: 'itens sem estoque disponivel',
 		};
 
 		const labelsOrdem = {
@@ -128,7 +128,7 @@
 			validade_desc: 'validade mais distante',
 			qtd_desc: 'maior quantidade',
 			produto_asc: 'produto A-Z',
-			id_asc: 'ID crescente',
+			lote_asc: 'lote A-Z',
 		};
 
 		const rankRisco = { critico: 0, atencao: 1, ok: 2, sem_estoque: 3 };
@@ -188,8 +188,8 @@
 					return toStr(a.dataset.produto).localeCompare(toStr(b.dataset.produto), 'pt-BR');
 				}
 
-				if (ordem === 'id_asc') {
-					return toNum(a.dataset.id) - toNum(b.dataset.id);
+				if (ordem === 'lote_asc') {
+					return toStr(a.dataset.lote).localeCompare(toStr(b.dataset.lote), 'pt-BR');
 				}
 
 				const riscoA = rankRisco[toStr(a.dataset.risco)] ?? 99;
@@ -233,7 +233,7 @@
 
 			tabelaBody.replaceChildren(...ordenadas, ...ocultas);
 
-			listaStatus.textContent = `${ordenadas.length} lote(s) exibido(s) em ${labelsLista[tipo] || 'selecao atual'}, ordenados por ${labelsOrdem[ordem] || 'ordem atual'}.`;
+			listaStatus.textContent = `${ordenadas.length} item(ns) exibido(s) em ${labelsLista[tipo] || 'selecao atual'}, ordenados por ${labelsOrdem[ordem] || 'ordem atual'}.`;
 
 			localStorage.setItem(STORAGE_LISTA_FILTRO, tipo);
 			localStorage.setItem(STORAGE_LISTA_ORDEM, ordem);
@@ -270,7 +270,7 @@
 		<table>
 			<thead>
 				<tr>
-					<th>ID</th>
+					<th>Cod barras</th>
 					<th>Produto</th>
 					<th>Lote</th>
 					<th>Risco</th>
@@ -314,9 +314,9 @@
 							data-dias="<?= $dias ?>"
 							data-qtd="<?= $qtd ?>"
 							data-produto="<?= htmlspecialchars(strtolower((string) $lote['produto_nome']), ENT_QUOTES, 'UTF-8') ?>"
-							data-id="<?= (int) $lote['id'] ?>"
+							data-lote="<?= htmlspecialchars(strtolower((string) $lote['numero_lote']), ENT_QUOTES, 'UTF-8') ?>"
 						>
-							<td><?= (int) $lote['id'] ?></td>
+							<td><?= htmlspecialchars((string) $lote['cod_barras'], ENT_QUOTES, 'UTF-8') ?></td>
 							<td><?= htmlspecialchars($lote['produto_nome'], ENT_QUOTES, 'UTF-8') ?></td>
 							<td><?= htmlspecialchars($lote['numero_lote'], ENT_QUOTES, 'UTF-8') ?></td>
 							<td><span class="pill <?= $classeTabela ?>"><?= $labelTabela ?></span></td>

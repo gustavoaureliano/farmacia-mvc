@@ -68,6 +68,11 @@ class VendasController extends Controller
 			return;
 		}
 
+		if ($action === 'cancelar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+			$this->cancelar();
+			return;
+		}
+
 		if ($action === 'receitas-validas') {
 			$this->receitasValidas();
 			return;
@@ -134,10 +139,11 @@ class VendasController extends Controller
 
 	private function criar(): void
 	{
-		$clienteId = ($this->request['cliente_id'] ?? '') === '' ? null : (int) $this->request['cliente_id'];
-		$funcionarioId = (int) ($this->request['funcionario_id'] ?? 0);
+		$clienteIdRaw = trim((string) ($this->request['cliente_id'] ?? ''));
+		$clienteId = $clienteIdRaw === '' ? null : $clienteIdRaw;
+		$funcionarioId = trim((string) ($this->request['funcionario_id'] ?? ''));
 
-		if ($funcionarioId <= 0) {
+		if ($funcionarioId === '') {
 			$_SESSION['flash_error'] = 'Selecione um funcionario.';
 			$this->redirect('/vendas/nova');
 		}
@@ -150,12 +156,12 @@ class VendasController extends Controller
 	private function adicionarItem(): void
 	{
 		$vendaId = (int) ($this->request['venda_id'] ?? 0);
-		$produtoId = (int) ($this->request['produto_id'] ?? 0);
+		$produtoId = trim((string) ($this->request['produto_id'] ?? ''));
 		$quantidade = (int) ($this->request['quantidade'] ?? 0);
 		$receitaIdRaw = trim((string) ($this->request['receita_id'] ?? ''));
 		$receitaId = $receitaIdRaw === '' ? null : (int) $receitaIdRaw;
 
-		if ($vendaId <= 0 || $produtoId <= 0 || $quantidade <= 0) {
+		if ($vendaId <= 0 || $produtoId === '' || $quantidade <= 0) {
 			$_SESSION['flash_error'] = 'Informe venda, produto e quantidade validos.';
 			$this->redirect('/vendas/nova?venda_id=' . $vendaId);
 		}
@@ -173,16 +179,17 @@ class VendasController extends Controller
 	private function atualizarItem(): void
 	{
 		$vendaId = (int) ($this->request['venda_id'] ?? 0);
-		$itemId = (int) ($this->request['item_id'] ?? 0);
+		$codBarras = trim((string) ($this->request['item_cod_barras'] ?? ''));
+		$lote = trim((string) ($this->request['item_lote'] ?? ''));
 		$quantidade = (int) ($this->request['quantidade'] ?? 0);
 
-		if ($vendaId <= 0 || $itemId <= 0 || $quantidade <= 0) {
+		if ($vendaId <= 0 || $codBarras === '' || $lote === '' || $quantidade <= 0) {
 			$_SESSION['flash_error'] = 'Informe venda, item e quantidade validos.';
 			$this->redirect('/vendas/nova?venda_id=' . $vendaId);
 		}
 
 		try {
-			$this->vendaDAO->atualizarQuantidadeItem($itemId, $quantidade);
+			$this->vendaDAO->atualizarQuantidadeItem($vendaId, $codBarras, $lote, $quantidade);
 			$_SESSION['flash_success'] = 'Quantidade do item atualizada com sucesso.';
 		} catch (Exception $e) {
 			$_SESSION['flash_error'] = $e->getMessage();
@@ -194,15 +201,23 @@ class VendasController extends Controller
 	private function removerItem(): void
 	{
 		$vendaId = (int) ($this->request['venda_id'] ?? 0);
-		$itemId = (int) ($this->request['item_id'] ?? 0);
+		$itemKey = trim((string) ($this->request['item_key'] ?? ''));
+		$codBarras = trim((string) ($this->request['item_cod_barras'] ?? ''));
+		$lote = trim((string) ($this->request['item_lote'] ?? ''));
 
-		if ($vendaId <= 0 || $itemId <= 0) {
+		if ($itemKey !== '' && str_contains($itemKey, '|')) {
+			[$codBarrasParsed, $loteParsed] = explode('|', $itemKey, 2);
+			$codBarras = trim($codBarrasParsed);
+			$lote = trim($loteParsed);
+		}
+
+		if ($vendaId <= 0 || $codBarras === '' || $lote === '') {
 			$_SESSION['flash_error'] = 'Informe venda e item validos.';
 			$this->redirect('/vendas/nova?venda_id=' . $vendaId);
 		}
 
 		try {
-			$this->vendaDAO->removerItem($itemId);
+			$this->vendaDAO->removerItem($vendaId, $codBarras, $lote);
 			$_SESSION['flash_success'] = 'Item removido da venda.';
 		} catch (Exception $e) {
 			$_SESSION['flash_error'] = $e->getMessage();
@@ -234,12 +249,37 @@ class VendasController extends Controller
 		}
 	}
 
+	private function cancelar(): void
+	{
+		$vendaId = (int) ($this->request['venda_id'] ?? 0);
+		$returnTo = $this->sanitizeInternalPath((string) ($this->request['return_to'] ?? ''));
+
+		if ($vendaId <= 0) {
+			$_SESSION['flash_error'] = 'Venda invalida para cancelamento.';
+			$this->redirect('/vendas/listar');
+		}
+
+		try {
+			$this->vendaDAO->cancelarVenda($vendaId);
+			$_SESSION['flash_success'] = 'Venda #' . $vendaId . ' cancelada com sucesso. Estoque e receitas foram liberados.';
+		} catch (Exception $e) {
+			$_SESSION['flash_error'] = $e->getMessage();
+		}
+
+		if ($returnTo !== null) {
+			$this->redirect($returnTo);
+			return;
+		}
+
+		$this->redirect('/vendas/listar?venda_id=' . $vendaId);
+	}
+
 	private function receitasValidas(): void
 	{
 		$vendaId = (int) ($this->request['venda_id'] ?? 0);
-		$produtoId = (int) ($this->request['produto_id'] ?? 0);
+		$produtoId = trim((string) ($this->request['produto_id'] ?? ''));
 
-		if ($vendaId <= 0 || $produtoId <= 0) {
+		if ($vendaId <= 0 || $produtoId === '') {
 			$this->respondJson([
 				'ok' => false,
 				'items' => [],
@@ -254,8 +294,8 @@ class VendasController extends Controller
 				throw new RuntimeException('Venda nao encontrada.');
 			}
 
-			$clienteId = isset($venda['cliente_id']) ? (int) $venda['cliente_id'] : 0;
-			if ($clienteId <= 0) {
+			$clienteId = isset($venda['cliente_id']) && $venda['cliente_id'] !== null ? (string) $venda['cliente_id'] : '';
+			if ($clienteId === '') {
 				$this->respondJson([
 					'ok' => true,
 					'items' => [],
@@ -371,8 +411,8 @@ class VendasController extends Controller
 			'venda_id' => (int) ($this->request['venda_id'] ?? 0),
 			'data_inicio' => trim((string) ($this->request['data_inicio'] ?? '')),
 			'data_fim' => trim((string) ($this->request['data_fim'] ?? '')),
-			'cliente_id' => (int) ($this->request['cliente_id'] ?? 0),
-			'funcionario_id' => (int) ($this->request['funcionario_id'] ?? 0),
+			'cliente_id' => trim((string) ($this->request['cliente_id'] ?? '')),
+			'funcionario_id' => trim((string) ($this->request['funcionario_id'] ?? '')),
 		];
 	}
 
@@ -384,5 +424,27 @@ class VendasController extends Controller
 		}
 
 		return $ordem;
+	}
+
+	private function sanitizeInternalPath(string $path): ?string
+	{
+		$path = trim($path);
+		if ($path === '') {
+			return null;
+		}
+
+		if (!str_starts_with($path, '/')) {
+			return null;
+		}
+
+		if (str_starts_with($path, '//')) {
+			return null;
+		}
+
+		if (preg_match('/^[a-z][a-z0-9+.-]*:/i', $path) === 1) {
+			return null;
+		}
+
+		return $path;
 	}
 }

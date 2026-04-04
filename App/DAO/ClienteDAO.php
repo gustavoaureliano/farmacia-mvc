@@ -15,13 +15,13 @@ class ClienteDAO
 
 	public function listar(): array
 	{
-		$stmt = $this->conn->query('SELECT * FROM clientes ORDER BY nome ASC');
+		$stmt = $this->conn->query('SELECT cpf, nome, data_nascimento, telefone FROM Cliente ORDER BY nome ASC');
 		return $stmt->fetchAll();
 	}
 
-	public function criar(array $data): int
+	public function criar(array $data): string
 	{
-		$sql = 'INSERT INTO clientes (nome, cpf, data_nascimento, telefone)
+		$sql = 'INSERT INTO Cliente (nome, cpf, data_nascimento, telefone)
 				VALUES (:nome, :cpf, :data_nascimento, :telefone)';
 
 		$stmt = $this->conn->prepare($sql);
@@ -31,6 +31,6 @@ class ClienteDAO
 		$stmt->bindValue(':telefone', $data['telefone'] ?: null);
 		$stmt->execute();
 
-		return (int) $this->conn->lastInsertId();
+		return (string) $data['cpf'];
 	}
 }

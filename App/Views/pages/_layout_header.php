@@ -576,7 +576,7 @@
 		</button>
 		<nav id="main-nav" class="main-nav" aria-label="Navegação principal">
 			<a href="/produtos">Produtos</a>
-			<a href="/lotes">Lotes</a>
+			<a href="/estoque">Estoque</a>
 			<a href="/receitas">Receitas</a>
 			<a href="/clientes">Clientes</a>
 			<a href="/funcionarios">Funcionarios</a>

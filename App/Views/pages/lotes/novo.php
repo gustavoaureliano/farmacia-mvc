@@ -1,37 +1,37 @@
 <?php
 $returnToSeguro = isset($returnTo) && is_string($returnTo) ? $returnTo : null;
-$produtoSelecionado = isset($produtoIdSelecionado) ? (int) $produtoIdSelecionado : 0;
+$produtoSelecionado = isset($produtoCodSelecionado) && is_string($produtoCodSelecionado) ? $produtoCodSelecionado : '';
 $novoProdutoQuery = http_build_query([
-	'return_to' => '/lotes/novo',
+	'return_to' => '/estoque/novo',
 ]);
 ?>
 
 <div class="card">
 	<div class="section-head">
-		<h2>Novo lote</h2>
+		<h2>Nova entrada de estoque</h2>
 		<?php if ($returnToSeguro !== null): ?>
 			<a class="btn-inline" href="<?= htmlspecialchars($returnToSeguro, ENT_QUOTES, 'UTF-8') ?>">Voltar</a>
 		<?php else: ?>
-			<a class="btn-inline" href="/lotes">Voltar para lotes</a>
+			<a class="btn-inline" href="/estoque">Voltar para estoque</a>
 		<?php endif; ?>
 	</div>
-	<p class="helper-text">Se o produto ainda nao existir, cadastre agora e continue o lancamento do lote.</p>
+	<p class="helper-text">Se o produto ainda nao existir, cadastre agora e continue o lancamento no estoque.</p>
 	<div class="pills">
 		<a class="btn-soft" href="/produtos/novo?<?= htmlspecialchars($novoProdutoQuery, ENT_QUOTES, 'UTF-8') ?>">Novo produto</a>
 	</div>
 
-	<form method="POST" action="/lotes/salvar">
+	<form method="POST" action="/estoque/salvar">
 		<?php if ($returnToSeguro !== null): ?>
 			<input type="hidden" name="return_to" value="<?= htmlspecialchars($returnToSeguro, ENT_QUOTES, 'UTF-8') ?>">
 		<?php endif; ?>
 
 		<label>Produto</label>
-		<select name="produto_id" required>
+		<select name="cod_barras" required>
 			<option value="">Selecione</option>
 			<?php foreach ($produtos as $produto): ?>
-				<?php $id = (int) $produto['id']; ?>
-				<option value="<?= $id ?>" <?= $produtoSelecionado === $id ? 'selected' : '' ?>>
-					<?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?>
+				<?php $codigo = (string) $produto['codigo_barras']; ?>
+				<option value="<?= htmlspecialchars($codigo, ENT_QUOTES, 'UTF-8') ?>" <?= $produtoSelecionado === $codigo ? 'selected' : '' ?>>
+					<?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?> (<?= htmlspecialchars($codigo, ENT_QUOTES, 'UTF-8') ?>)
 				</option>
 			<?php endforeach; ?>
 		</select>
@@ -48,6 +48,6 @@ $novoProdutoQuery = http_build_query([
 		<label>Localizacao (opcional)</label>
 		<input name="localizacao" placeholder="Ex.: Prateleira C2">
 
-		<button type="submit">Salvar lote</button>
+		<button type="submit">Salvar entrada</button>
 	</form>
 </div>

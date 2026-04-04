@@ -48,46 +48,46 @@ class LotesController extends Controller
 	private function novo(): void
 	{
 		$returnTo = $this->sanitizeInternalPath((string) ($this->request['return_to'] ?? ''));
-		$produtoIdSelecionado = (int) ($this->request['produto_id'] ?? 0);
+		$produtoCodSelecionado = trim((string) ($this->request['cod_barras'] ?? ''));
 
 		$this->addParam('produtos', $this->produtoDAO->listar());
 		$this->addParam('returnTo', $returnTo);
-		$this->addParam('produtoIdSelecionado', $produtoIdSelecionado > 0 ? $produtoIdSelecionado : null);
+		$this->addParam('produtoCodSelecionado', $produtoCodSelecionado !== '' ? $produtoCodSelecionado : null);
 		$this->render('lotes/novo');
 	}
 
 	private function salvar(): void
 	{
 		$returnTo = $this->sanitizeInternalPath((string) ($this->request['return_to'] ?? ''));
-		$redirectNovo = '/lotes/novo';
+		$redirectNovo = '/estoque/novo';
 		if ($returnTo !== null) {
 			$redirectNovo .= '?return_to=' . urlencode($returnTo);
 		}
 
 		$data = [
-			'produto_id' => (int) ($this->request['produto_id'] ?? 0),
+			'cod_barras' => trim((string) ($this->request['cod_barras'] ?? '')),
 			'numero_lote' => trim((string) ($this->request['numero_lote'] ?? '')),
 			'validade' => trim((string) ($this->request['validade'] ?? '')),
 			'quantidade_disponivel' => (int) ($this->request['quantidade_disponivel'] ?? 0),
 			'localizacao' => trim((string) ($this->request['localizacao'] ?? '')),
 		];
 
-		if ($data['produto_id'] <= 0 || $data['numero_lote'] === '' || $data['validade'] === '' || $data['quantidade_disponivel'] <= 0) {
+		if ($data['cod_barras'] === '' || $data['numero_lote'] === '' || $data['validade'] === '' || $data['quantidade_disponivel'] <= 0) {
 			$_SESSION['flash_error'] = 'Informe produto, lote, validade e quantidade valida.';
 			$this->redirect($redirectNovo);
 		}
 
 		try {
 			$this->loteDAO->criar($data);
-			$_SESSION['flash_success'] = 'Lote cadastrado com sucesso.';
+			$_SESSION['flash_success'] = 'Entrada de estoque cadastrada com sucesso.';
 			if ($returnTo !== null) {
 				$this->redirect($returnTo);
 				return;
 			}
-			$this->redirect('/lotes');
+			$this->redirect('/estoque');
 			return;
 		} catch (Throwable $e) {
-			$_SESSION['flash_error'] = 'Falha ao cadastrar lote. Verifique se o numero do lote ja existe para o produto.';
+			$_SESSION['flash_error'] = 'Falha ao cadastrar entrada de estoque. Verifique se o numero do lote ja existe para o produto.';
 			$this->redirect($redirectNovo);
 		}
 	}

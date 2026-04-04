@@ -96,10 +96,10 @@ class ProdutosController extends Controller
 
 		try {
 			$conn->beginTransaction();
-			$produtoId = $this->produtoDAO->criar($data);
+			$produtoCodBarras = $this->produtoDAO->criar($data);
 
 			if ($querCriarLote) {
-				$loteInicial['produto_id'] = $produtoId;
+				$loteInicial['cod_barras'] = $produtoCodBarras;
 				$this->loteDAO->criar($loteInicial);
 			}
 
@@ -119,7 +119,7 @@ class ProdutosController extends Controller
 			: 'Produto cadastrado com sucesso.';
 
 		if ($returnTo !== null) {
-			$this->redirect($this->appendProdutoIdToReturn($returnTo, $produtoId));
+			$this->redirect($this->appendProdutoIdToReturn($returnTo, $produtoCodBarras));
 			return;
 		}
 
@@ -135,7 +135,7 @@ class ProdutosController extends Controller
 		return '/produtos/novo?return_to=' . urlencode($returnTo);
 	}
 
-	private function appendProdutoIdToReturn(string $returnTo, int $produtoId): string
+	private function appendProdutoIdToReturn(string $returnTo, string $produtoCodBarras): string
 	{
 		$parts = parse_url($returnTo);
 		$path = $parts['path'] ?? '/';
@@ -145,8 +145,8 @@ class ProdutosController extends Controller
 			parse_str($parts['query'], $params);
 		}
 
-		if ($path === '/lotes/novo') {
-			$params['produto_id'] = (string) $produtoId;
+		if ($path === '/lotes/novo' || $path === '/estoque/novo') {
+			$params['cod_barras'] = $produtoCodBarras;
 		}
 
 		$query = http_build_query($params);
@@ -222,7 +222,7 @@ class ProdutosController extends Controller
 
 		foreach ($items as $item) {
 			$formatados[] = [
-				'id' => (int) $item['id'],
+				'id' => (string) $item['id'],
 				'nome' => (string) $item['nome'],
 				'principio_ativo' => (string) ($item['principio_ativo'] ?? ''),
 				'marca_laboratorio' => (string) ($item['marca_laboratorio'] ?? ''),

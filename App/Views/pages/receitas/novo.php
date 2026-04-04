@@ -1,7 +1,7 @@
 <?php
 $returnToSeguro = isset($returnTo) && is_string($returnTo) ? $returnTo : null;
-$clienteSelecionado = isset($clienteIdSelecionado) ? (int) $clienteIdSelecionado : 0;
-$produtoSelecionado = isset($produtoIdSelecionado) ? (int) $produtoIdSelecionado : 0;
+$clienteSelecionado = isset($clienteIdSelecionado) && is_string($clienteIdSelecionado) ? $clienteIdSelecionado : '';
+$produtoSelecionado = isset($produtoIdSelecionado) && is_string($produtoIdSelecionado) ? $produtoIdSelecionado : '';
 $vendaOrigem = null;
 
 if ($returnToSeguro !== null) {
@@ -36,8 +36,8 @@ if ($returnToSeguro !== null) {
 		<select name="cliente_id" required>
 			<option value="">Selecione</option>
 			<?php foreach ($clientes as $cliente): ?>
-				<?php $id = (int) $cliente['id']; ?>
-				<option value="<?= $id ?>" <?= $clienteSelecionado === $id ? 'selected' : '' ?>>
+				<?php $cpf = (string) $cliente['cpf']; ?>
+				<option value="<?= htmlspecialchars($cpf, ENT_QUOTES, 'UTF-8') ?>" <?= $clienteSelecionado === $cpf ? 'selected' : '' ?>>
 					<?= htmlspecialchars($cliente['nome'], ENT_QUOTES, 'UTF-8') ?>
 				</option>
 			<?php endforeach; ?>
@@ -56,8 +56,8 @@ if ($returnToSeguro !== null) {
 		<select name="produto_id" required>
 			<option value="">Selecione</option>
 			<?php foreach ($produtos as $produto): ?>
-				<?php $id = (int) $produto['id']; ?>
-				<option value="<?= $id ?>" <?= $produtoSelecionado === $id ? 'selected' : '' ?>>
+				<?php $cod = (string) $produto['codigo_barras']; ?>
+				<option value="<?= htmlspecialchars($cod, ENT_QUOTES, 'UTF-8') ?>" <?= $produtoSelecionado === $cod ? 'selected' : '' ?>>
 					<?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?>
 				</option>
 			<?php endforeach; ?>

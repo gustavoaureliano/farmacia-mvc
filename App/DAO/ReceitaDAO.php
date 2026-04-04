@@ -13,11 +13,19 @@ class ReceitaDAO
 		$this->conn = Connection::getConn();
 	}
 
-	public function listarPorCliente(int $clienteId): array
+	public function listarPorCliente(string $clienteCpf): array
 	{
-		$sql = 'SELECT * FROM receitas WHERE cliente_id = :cliente_id ORDER BY data_receita DESC';
+		$sql = 'SELECT r.id_receita AS id,
+					   r.data AS data_receita,
+					   r.crm_medico AS crm,
+					   m.nome AS medico_nome
+				FROM Receita r
+				INNER JOIN Medico m ON m.crm = r.crm_medico
+				WHERE r.cpf_cliente = :cpf_cliente
+				ORDER BY r.data DESC, r.id_receita DESC';
+
 		$stmt = $this->conn->prepare($sql);
-		$stmt->bindValue(':cliente_id', $clienteId, PDO::PARAM_INT);
+		$stmt->bindValue(':cpf_cliente', $clienteCpf, PDO::PARAM_STR);
 		$stmt->execute();
 
 		return $stmt->fetchAll();
@@ -25,26 +33,40 @@ class ReceitaDAO
 
 	public function listarComCliente(): array
 	{
-		$sql = 'SELECT r.*, c.nome AS cliente_nome
-				FROM receitas r
-				INNER JOIN clientes c ON c.id = r.cliente_id
-				ORDER BY r.data_receita DESC, r.id DESC';
+		$sql = 'SELECT r.id_receita AS id,
+					   r.data AS data_receita,
+					   r.crm_medico AS crm,
+					   r.cpf_cliente AS cliente_id,
+					   c.nome AS cliente_nome,
+					   m.nome AS medico_nome
+				FROM Receita r
+				INNER JOIN Cliente c ON c.cpf = r.cpf_cliente
+				INNER JOIN Medico m ON m.crm = r.crm_medico
+				ORDER BY r.data DESC, r.id_receita DESC';
+
 		$stmt = $this->conn->query($sql);
 
 		return $stmt->fetchAll();
 	}
 
-	public function listarValidasParaClienteProduto(int $clienteId, int $produtoId): array
+	public function listarValidasParaClienteProduto(string $clienteCpf, string $codBarras): array
 	{
-		$sql = 'SELECT r.id, r.data_receita, r.medico_nome, r.crm
-				FROM receitas r
-				INNER JOIN receita_itens ri ON ri.receita_id = r.id
-				WHERE r.cliente_id = :cliente_id
-				  AND ri.produto_id = :produto_id
-				ORDER BY r.data_receita DESC, r.id DESC';
+		$sql = 'SELECT r.id_receita AS id,
+					   r.data AS data_receita,
+					   r.crm_medico AS crm,
+					   m.nome AS medico_nome
+				FROM Receita r
+				INNER JOIN Medico m ON m.crm = r.crm_medico
+				INNER JOIN Item_Receita ir ON ir.id_receita = r.id_receita
+				LEFT JOIN Uso_Receita ur ON ur.id_receita = r.id_receita
+				WHERE r.cpf_cliente = :cpf_cliente
+				  AND ir.cod_barras = :cod_barras
+				  AND ur.id_receita IS NULL
+				ORDER BY r.data DESC, r.id_receita DESC';
+
 		$stmt = $this->conn->prepare($sql);
-		$stmt->bindValue(':cliente_id', $clienteId, PDO::PARAM_INT);
-		$stmt->bindValue(':produto_id', $produtoId, PDO::PARAM_INT);
+		$stmt->bindValue(':cpf_cliente', $clienteCpf, PDO::PARAM_STR);
+		$stmt->bindValue(':cod_barras', $codBarras, PDO::PARAM_STR);
 		$stmt->execute();
 
 		return $stmt->fetchAll();
@@ -55,26 +77,33 @@ class ReceitaDAO
 		$this->conn->beginTransaction();
 
 		try {
-			$sqlReceita = 'INSERT INTO receitas (cliente_id, medico_nome, crm, data_receita, observacoes)
-						  VALUES (:cliente_id, :medico_nome, :crm, :data_receita, :observacoes)';
+			$sqlMedico = 'INSERT INTO Medico (crm, nome)
+				VALUES (:crm, :nome)
+				ON DUPLICATE KEY UPDATE nome = VALUES(nome)';
+			$stmtMedico = $this->conn->prepare($sqlMedico);
+			$stmtMedico->bindValue(':crm', (string) $data['crm']);
+			$stmtMedico->bindValue(':nome', (string) $data['medico_nome']);
+			$stmtMedico->execute();
+
+			$sqlReceita = 'INSERT INTO Receita (data, crm_medico, cpf_cliente)
+				VALUES (:data_receita, :crm_medico, :cpf_cliente)';
 			$stmtReceita = $this->conn->prepare($sqlReceita);
-			$stmtReceita->bindValue(':cliente_id', (int) $data['cliente_id'], PDO::PARAM_INT);
-			$stmtReceita->bindValue(':medico_nome', $data['medico_nome']);
-			$stmtReceita->bindValue(':crm', $data['crm']);
-			$stmtReceita->bindValue(':data_receita', $data['data_receita']);
-			$stmtReceita->bindValue(':observacoes', $data['observacoes'] ?: null);
+			$stmtReceita->bindValue(':data_receita', (string) $data['data_receita']);
+			$stmtReceita->bindValue(':crm_medico', (string) $data['crm']);
+			$stmtReceita->bindValue(':cpf_cliente', (string) $data['cliente_id']);
 			$stmtReceita->execute();
 
 			$receitaId = (int) $this->conn->lastInsertId();
 
-			$sqlItem = 'INSERT INTO receita_itens (receita_id, produto_id, posologia)
-					VALUES (:receita_id, :produto_id, :posologia)';
+			$sqlItem = 'INSERT INTO Item_Receita (id_receita, cod_barras, quantidade, observacoes)
+				VALUES (:id_receita, :cod_barras, :quantidade, :observacoes)';
 			$stmtItem = $this->conn->prepare($sqlItem);
 
 			foreach ($itens as $item) {
-				$stmtItem->bindValue(':receita_id', $receitaId, PDO::PARAM_INT);
-				$stmtItem->bindValue(':produto_id', (int) $item['produto_id'], PDO::PARAM_INT);
-				$stmtItem->bindValue(':posologia', $item['posologia'] ?: null);
+				$stmtItem->bindValue(':id_receita', $receitaId, PDO::PARAM_INT);
+				$stmtItem->bindValue(':cod_barras', (string) $item['produto_id'], PDO::PARAM_STR);
+				$stmtItem->bindValue(':quantidade', (int) ($item['quantidade'] ?? 1), PDO::PARAM_INT);
+				$stmtItem->bindValue(':observacoes', $item['posologia'] ?: null);
 				$stmtItem->execute();
 			}
 

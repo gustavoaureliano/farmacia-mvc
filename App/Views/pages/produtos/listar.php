@@ -25,7 +25,7 @@
 				<option value="preco_asc">Menor preco</option>
 				<option value="preco_desc">Maior preco</option>
 				<option value="estoque_desc">Maior estoque</option>
-				<option value="id_asc">ID crescente</option>
+				<option value="codigo_asc">Codigo crescente</option>
 			</select>
 		</div>
 		<div class="pills" style="margin-top: 10px;">
@@ -38,7 +38,6 @@
 		<table>
 			<thead>
 				<tr>
-					<th>ID</th>
 					<th>Nome</th>
 					<th>Tipo</th>
 					<th>Receita</th>
@@ -49,11 +48,10 @@
 			</thead>
 			<tbody id="produto-list-body">
 				<?php if (empty($produtos)): ?>
-					<tr><td colspan="7">Nenhum produto cadastrado.</td></tr>
+					<tr><td colspan="6">Nenhum produto cadastrado.</td></tr>
 				<?php else: ?>
 					<?php foreach ($produtos as $produto): ?>
 						<tr>
-							<td><?= (int) $produto['id'] ?></td>
 							<td><?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?></td>
 							<td><?= htmlspecialchars($produto['tipo'], ENT_QUOTES, 'UTF-8') ?></td>
 							<td><?= ((int) $produto['exige_receita'] === 1) ? 'Sim' : 'Nao' ?></td>
@@ -72,7 +70,7 @@
 $produtosBuscaInicial = [];
 foreach ($produtos as $produto) {
 	$produtosBuscaInicial[] = [
-		'id' => (int) $produto['id'],
+		'id' => (string) $produto['codigo_barras'],
 		'nome' => (string) $produto['nome'],
 		'tipo' => (string) $produto['tipo'],
 		'exige_receita' => (int) $produto['exige_receita'],
@@ -153,8 +151,8 @@ foreach ($produtos as $produto) {
 				return Number(b.estoque_disponivel || 0) - Number(a.estoque_disponivel || 0);
 			}
 
-			if (order === 'id_asc') {
-				return Number(a.id || 0) - Number(b.id || 0);
+			if (order === 'codigo_asc') {
+				return String(a.codigo_barras || '').localeCompare(String(b.codigo_barras || ''), 'pt-BR');
 			}
 
 			return 0;
@@ -165,14 +163,13 @@ foreach ($produtos as $produto) {
 
 	const renderRows = (items) => {
 		if (!Array.isArray(items) || items.length === 0) {
-			tbody.innerHTML = '<tr><td colspan="7">Nenhum produto encontrado.</td></tr>';
+			tbody.innerHTML = '<tr><td colspan="6">Nenhum produto encontrado.</td></tr>';
 			return;
 		}
 
-		tbody.innerHTML = items.map((item) => {
+			tbody.innerHTML = items.map((item) => {
 			const receita = Number(item.exige_receita) === 1 ? 'Sim' : 'Nao';
 			return `<tr>
-				<td>${Number(item.id)}</td>
 				<td>${escapeHtml(item.nome)}</td>
 				<td>${escapeHtml(item.tipo)}</td>
 				<td>${receita}</td>

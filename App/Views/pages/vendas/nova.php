@@ -16,7 +16,7 @@
 			<select name="cliente_id">
 				<option value="">Sem cliente</option>
 				<?php foreach ($clientes as $cliente): ?>
-					<option value="<?= (int) $cliente['id'] ?>"><?= htmlspecialchars($cliente['nome'], ENT_QUOTES, 'UTF-8') ?></option>
+					<option value="<?= htmlspecialchars((string) $cliente['cpf'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($cliente['nome'], ENT_QUOTES, 'UTF-8') ?></option>
 				<?php endforeach; ?>
 			</select>
 
@@ -24,47 +24,60 @@
 			<select name="funcionario_id" required>
 				<option value="">Selecione</option>
 				<?php foreach ($funcionarios as $funcionario): ?>
-					<option value="<?= (int) $funcionario['id'] ?>"><?= htmlspecialchars($funcionario['nome'], ENT_QUOTES, 'UTF-8') ?></option>
+					<option value="<?= htmlspecialchars((string) $funcionario['cpf'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($funcionario['nome'], ENT_QUOTES, 'UTF-8') ?></option>
 				<?php endforeach; ?>
 			</select>
 
 			<button type="submit">Iniciar venda</button>
 		</form>
 	<?php else: ?>
+		<?php
+		$statusVenda = (string) ($venda['status'] ?? 'aberta');
+		$vendaAberta = $statusVenda === 'aberta';
+		?>
 		<p><strong>Venda #<?= (int) $venda['id'] ?></strong> | Total atual: R$ <?= number_format((float) $venda['valor_total'], 2, ',', '.') ?> | Itens: <?= count($itens) ?></p>
-		<p class="helper-text">Pesquise produtos, ajuste as quantidades e finalize a venda ao concluir o atendimento.</p>
+		<p class="helper-text">Status da venda: <?= htmlspecialchars(ucfirst($statusVenda), ENT_QUOTES, 'UTF-8') ?>.</p>
+		<?php if ($vendaAberta): ?>
+			<p class="helper-text">Pesquise produtos, ajuste as quantidades e finalize a venda ao concluir o atendimento.</p>
+		<?php elseif ($statusVenda === 'cancelada'): ?>
+			<p class="helper-text">Venda cancelada: edicoes e novos itens foram bloqueados.</p>
+		<?php else: ?>
+			<p class="helper-text">Venda finalizada: esta tela esta em modo de consulta.</p>
+		<?php endif; ?>
 
-		<form method="POST" action="/vendas/adicionar-item" id="form-adicionar-item">
-			<input type="hidden" name="venda_id" value="<?= (int) $venda['id'] ?>">
-			<input type="hidden" name="produto_id" id="venda-produto-id" required>
-			<input type="hidden" id="venda-cliente-id" value="<?= isset($venda['cliente_id']) && $venda['cliente_id'] !== null ? (int) $venda['cliente_id'] : 0 ?>">
+		<?php if ($vendaAberta): ?>
+			<form method="POST" action="/vendas/adicionar-item" id="form-adicionar-item">
+				<input type="hidden" name="venda_id" value="<?= (int) $venda['id'] ?>">
+				<input type="hidden" name="produto_id" id="venda-produto-id" required>
+				<input type="hidden" id="venda-cliente-id" value="<?= isset($venda['cliente_id']) && $venda['cliente_id'] !== null ? htmlspecialchars((string) $venda['cliente_id'], ENT_QUOTES, 'UTF-8') : '' ?>">
 
-			<div class="search-panel">
-				<label for="venda-produto-search">Produto</label>
-				<input id="venda-produto-search" placeholder="Digite nome, codigo de barras, principio ativo ou laboratorio" autocomplete="off">
-				<p class="helper-text" id="venda-search-status" aria-live="polite">Digite ao menos 2 caracteres para buscar produtos.</p>
-				<ul id="venda-search-results" class="search-result-list"></ul>
-				<div id="venda-produto-selecionado" class="pills" style="display: none;"></div>
-			</div>
-
-			<label>Quantidade</label>
-			<input type="number" name="quantidade" min="1" step="1" value="1" required>
-			<p class="helper-text" id="venda-qtd-helper">Selecione um produto para visualizar estoque disponivel.</p>
-			<p class="helper-text" id="venda-subtotal-prev">Subtotal previsto: R$ 0,00</p>
-
-			<div id="venda-receita-wrap" style="display: none;">
-				<label for="venda-receita-id">Receita valida para este cliente/produto</label>
-				<select name="receita_id" id="venda-receita-id">
-					<option value="">Selecione a receita</option>
-				</select>
-				<div class="pills">
-					<a class="btn-soft" id="venda-link-nova-receita" href="#">Nova receita</a>
+				<div class="search-panel">
+					<label for="venda-produto-search">Produto</label>
+					<input id="venda-produto-search" placeholder="Digite nome, codigo de barras, principio ativo ou laboratorio" autocomplete="off">
+					<p class="helper-text" id="venda-search-status" aria-live="polite">Digite ao menos 2 caracteres para buscar produtos.</p>
+					<ul id="venda-search-results" class="search-result-list"></ul>
+					<div id="venda-produto-selecionado" class="pills" style="display: none;"></div>
 				</div>
-				<p class="helper-text" id="venda-receita-helper" aria-live="polite">Para medicamentos com receita, selecione uma receita valida.</p>
-			</div>
 
-			<button type="submit">Adicionar item</button>
-		</form>
+				<label>Quantidade</label>
+				<input type="number" name="quantidade" min="1" step="1" value="1" required>
+				<p class="helper-text" id="venda-qtd-helper">Selecione um produto para visualizar estoque disponivel.</p>
+				<p class="helper-text" id="venda-subtotal-prev">Subtotal previsto: R$ 0,00</p>
+
+				<div id="venda-receita-wrap" style="display: none;">
+					<label for="venda-receita-id">Receita valida para este cliente/produto</label>
+					<select name="receita_id" id="venda-receita-id">
+						<option value="">Selecione a receita</option>
+					</select>
+					<div class="pills">
+						<a class="btn-soft" id="venda-link-nova-receita" href="#">Nova receita</a>
+					</div>
+					<p class="helper-text" id="venda-receita-helper" aria-live="polite">Para medicamentos com receita, selecione uma receita valida.</p>
+				</div>
+
+				<button type="submit">Adicionar item</button>
+			</form>
+		<?php endif; ?>
 
 		<h3>Itens da venda</h3>
 		<form method="POST" action="/vendas/finalizar" style="margin-top: 8px;">
@@ -73,7 +86,6 @@
 				<table>
 					<thead>
 						<tr>
-							<th>ID</th>
 							<th>Produto</th>
 							<th>Lote</th>
 							<th>Validade</th>
@@ -85,29 +97,33 @@
 					</thead>
 					<tbody>
 						<?php if (empty($itens)): ?>
-							<tr><td colspan="8">Nenhum item adicionado.</td></tr>
+							<tr><td colspan="7">Nenhum item adicionado.</td></tr>
 						<?php else: ?>
 							<?php foreach ($itens as $item): ?>
+								<?php $itemKey = (string) $item['produto_id'] . '|' . (string) $item['lote_id']; ?>
 								<tr>
-									<td><?= (int) $item['id'] ?></td>
 									<td><?= htmlspecialchars($item['produto_nome'], ENT_QUOTES, 'UTF-8') ?></td>
 									<td><?= htmlspecialchars($item['numero_lote'], ENT_QUOTES, 'UTF-8') ?></td>
 									<td><?= htmlspecialchars($item['validade'], ENT_QUOTES, 'UTF-8') ?></td>
 									<td>
-										<input type="number" name="quantidades[<?= (int) $item['id'] ?>]" min="1" step="1" value="<?= (int) $item['quantidade'] ?>" required style="max-width: 90px;">
+										<input type="number" name="quantidades[<?= htmlspecialchars($itemKey, ENT_QUOTES, 'UTF-8') ?>]" min="1" step="1" value="<?= (int) $item['quantidade'] ?>" required style="max-width: 90px;" <?= $vendaAberta ? '' : 'disabled' ?>>
 									</td>
 									<td>R$ <?= number_format((float) $item['preco_unitario_momento'], 2, ',', '.') ?></td>
 									<td>R$ <?= number_format((float) $item['subtotal'], 2, ',', '.') ?></td>
 									<td>
-										<button
-											type="submit"
-											name="item_id"
-											value="<?= (int) $item['id'] ?>"
-											formaction="/vendas/remover-item"
-											formmethod="post"
-											onclick="return confirm('Remover este item da venda?');"
-											class="btn-subtle"
-										>Remover</button>
+										<?php if ($vendaAberta): ?>
+											<button
+												type="submit"
+												name="item_key"
+												value="<?= htmlspecialchars($itemKey, ENT_QUOTES, 'UTF-8') ?>"
+												formaction="/vendas/remover-item"
+												formmethod="post"
+												onclick="return confirm('Remover este item da venda?');"
+												class="btn-subtle"
+											>Remover</button>
+										<?php else: ?>
+											<span class="helper-text">-</span>
+										<?php endif; ?>
 									</td>
 								</tr>
 							<?php endforeach; ?>
@@ -116,17 +132,27 @@
 				</table>
 			</div>
 
-			<button type="submit" style="margin-top: 12px;" <?= empty($itens) ? 'disabled' : '' ?>>Finalizar venda</button>
+			<?php if ($vendaAberta): ?>
+				<button type="submit" style="margin-top: 12px;" <?= empty($itens) ? 'disabled' : '' ?>>Finalizar venda</button>
+			<?php endif; ?>
 		</form>
+
+		<?php if ($vendaAberta): ?>
+			<form method="POST" action="/vendas/cancelar" style="margin-top: 8px;">
+				<input type="hidden" name="venda_id" value="<?= (int) $venda['id'] ?>">
+				<input type="hidden" name="return_to" value="<?= htmlspecialchars('/vendas/nova?venda_id=' . (int) $venda['id'], ENT_QUOTES, 'UTF-8') ?>">
+				<button type="submit" class="btn-subtle" onclick="return confirm('Cancelar esta venda? O estoque sera devolvido e receitas vinculadas serao liberadas.');">Cancelar venda</button>
+			</form>
+		<?php endif; ?>
 	<?php endif; ?>
 </div>
 
-<?php if (!empty($venda)): ?>
+<?php if (!empty($venda) && (($venda['status'] ?? 'aberta') === 'aberta')): ?>
 	<?php
 	$produtosBuscaInicialVenda = [];
 	foreach ($produtos as $produto) {
 		$produtosBuscaInicialVenda[] = [
-			'id' => (int) $produto['id'],
+			'id' => (string) $produto['codigo_barras'],
 			'nome' => (string) $produto['nome'],
 			'tipo' => (string) $produto['tipo'],
 			'exige_receita' => (int) $produto['exige_receita'],
@@ -164,7 +190,7 @@
 			return;
 		}
 
-		const clienteId = Number(inputClienteId ? inputClienteId.value : 0);
+		const clienteId = inputClienteId ? String(inputClienteId.value || '') : '';
 		const initialItems = <?= json_encode($produtosBuscaInicialVenda, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 		let serverItems = initialItems;
 		let requestId = 0;
@@ -202,10 +228,10 @@
 		const updateNewReceitaLink = (produtoId) => {
 			const params = new URLSearchParams();
 			params.set('return_to', returnTo);
-			if (clienteId > 0) {
-				params.set('cliente_id', String(clienteId));
+			if (clienteId !== '') {
+				params.set('cliente_id', clienteId);
 			}
-			if (Number(produtoId) > 0) {
+			if (String(produtoId || '') !== '') {
 				params.set('produto_id', String(produtoId));
 			}
 			receitaLink.href = `/receitas/novo?${params.toString()}`;
@@ -229,7 +255,7 @@
 			receitaSelect.required = true;
 			updateNewReceitaLink(item.id);
 
-			if (clienteId <= 0) {
+			if (clienteId === '') {
 				receitaSelect.disabled = true;
 				receitaSelect.innerHTML = '<option value="">Venda sem cliente vinculado</option>';
 				receitaHelper.textContent = 'Vincule um cliente para selecionar receita.';
@@ -335,7 +361,7 @@
 			list.innerHTML = items.map((item) => {
 				const receita = Number(item.exige_receita) === 1 ? 'Receita obrigatoria' : 'Receita opcional';
 				return `<li>
-					<button type="button" class="search-result-btn" data-id="${Number(item.id)}">
+					<button type="button" class="search-result-btn" data-id="${escapeHtml(item.id)}">
 						<span>
 							<strong>${escapeHtml(item.nome)}</strong><br>
 							<span class="search-meta">${escapeHtml(item.principio_ativo || item.marca_laboratorio || 'Sem principio ativo informado')}</span>
@@ -431,7 +457,7 @@
 
 			if (selectedItem && Number(selectedItem.exige_receita) === 1 && !receitaSelect.value) {
 				event.preventDefault();
-				receitaHelper.textContent = clienteId <= 0
+				receitaHelper.textContent = clienteId === ''
 					? 'Vincule um cliente para selecionar receita.'
 					: 'Selecione uma receita para concluir.';
 				return;
@@ -449,8 +475,8 @@
 				return;
 			}
 
-			const id = Number(button.getAttribute('data-id'));
-			const item = serverItems.find((produto) => Number(produto.id) === id) || initialItems.find((produto) => Number(produto.id) === id);
+			const id = String(button.getAttribute('data-id') || '');
+			const item = serverItems.find((produto) => String(produto.id) === id) || initialItems.find((produto) => String(produto.id) === id);
 			if (!item) {
 				return;
 			}

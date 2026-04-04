@@ -15,13 +15,13 @@ class FuncionarioDAO
 
 	public function listar(): array
 	{
-		$stmt = $this->conn->query('SELECT * FROM funcionarios WHERE ativo = 1 ORDER BY nome ASC');
+		$stmt = $this->conn->query('SELECT cpf, nome, cargo, registro_profissional AS crf, ativo FROM Funcionario WHERE ativo = 1 ORDER BY nome ASC');
 		return $stmt->fetchAll();
 	}
 
-	public function criar(array $data): int
+	public function criar(array $data): string
 	{
-		$sql = 'INSERT INTO funcionarios (nome, cargo, cpf, crf, ativo)
+		$sql = 'INSERT INTO Funcionario (nome, cargo, cpf, registro_profissional, ativo)
 				VALUES (:nome, :cargo, :cpf, :crf, 1)';
 
 		$stmt = $this->conn->prepare($sql);
@@ -31,6 +31,6 @@ class FuncionarioDAO
 		$stmt->bindValue(':crf', $data['crf'] ?: null);
 		$stmt->execute();
 
-		return (int) $this->conn->lastInsertId();
+		return (string) $data['cpf'];
 	}
 }

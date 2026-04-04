@@ -5,9 +5,9 @@
 		<table>
 			<thead>
 				<tr>
-					<th>ID</th>
-					<th>Nome</th>
 					<th>CPF</th>
+					<th>Nome</th>
+					<th>Nascimento</th>
 					<th>Telefone</th>
 				</tr>
 			</thead>
@@ -17,9 +17,9 @@
 				<?php else: ?>
 					<?php foreach ($clientes as $cliente): ?>
 						<tr>
-							<td><?= (int) $cliente['id'] ?></td>
-							<td><?= htmlspecialchars($cliente['nome'], ENT_QUOTES, 'UTF-8') ?></td>
 							<td><?= htmlspecialchars($cliente['cpf'], ENT_QUOTES, 'UTF-8') ?></td>
+							<td><?= htmlspecialchars($cliente['nome'], ENT_QUOTES, 'UTF-8') ?></td>
+							<td><?= htmlspecialchars((string) ($cliente['data_nascimento'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
 							<td><?= htmlspecialchars((string) ($cliente['telefone'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
 						</tr>
 					<?php endforeach; ?>

@@ -6,7 +6,7 @@
 	<div class="quick-actions">
 		<a href="/vendas/nova">Iniciar venda</a>
 		<a href="/produtos">Buscar produtos</a>
-		<a href="/lotes">Gerenciar lotes</a>
+		<a href="/estoque">Gerenciar estoque</a>
 		<a href="/receitas">Gerenciar receitas</a>
 		<a href="/produtos/novo">Cadastrar produto</a>
 		<a href="/clientes">Ver clientes</a>
