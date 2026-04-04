@@ -1,4 +1,6 @@
-CREATE DATABASE IF NOT EXISTS farmacia_db;
+CREATE DATABASE IF NOT EXISTS farmacia_db
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
 USE farmacia_db;
 
 -- Tabela Cliente
@@ -7,7 +9,7 @@ CREATE TABLE Cliente (
     nome VARCHAR(255) NOT NULL,
     data_nascimento DATE,
     telefone VARCHAR(20)
-);
+) ENGINE=InnoDB;
 
 -- Tabela Funcionario
 CREATE TABLE Funcionario (
@@ -16,13 +18,13 @@ CREATE TABLE Funcionario (
     cargo VARCHAR(100),
     registro_profissional VARCHAR(50),
     ativo BOOLEAN NOT NULL DEFAULT TRUE
-);
+) ENGINE=InnoDB;
 
 -- Tabela Medico
 CREATE TABLE Medico (
     crm VARCHAR(20) PRIMARY KEY, -- CRM como string
     nome VARCHAR(255) NOT NULL
-);
+) ENGINE=InnoDB;
 
 -- Tabela Produto
 CREATE TABLE Produto (
@@ -33,7 +35,7 @@ CREATE TABLE Produto (
     precisa_receita BOOLEAN,
     preco DECIMAL(10, 2) NOT NULL,
     ativo BOOLEAN NOT NULL DEFAULT TRUE
-);
+) ENGINE=InnoDB;
 
 -- Tabela Estoque
 CREATE TABLE Estoque (
@@ -44,7 +46,7 @@ CREATE TABLE Estoque (
     localizacao VARCHAR(100),
     PRIMARY KEY (cod_barras, lote),
     FOREIGN KEY (cod_barras) REFERENCES Produto(cod_barras)
-);
+) ENGINE=InnoDB;
 
 -- Tabela Venda
 CREATE TABLE Venda (
@@ -58,7 +60,7 @@ CREATE TABLE Venda (
     cancelada_em DATETIME NULL,
     FOREIGN KEY (cpf_cliente) REFERENCES Cliente(cpf),
     FOREIGN KEY (cpf_funcionario) REFERENCES Funcionario(cpf)
-);
+) ENGINE=InnoDB;
 
 -- Tabela Receita
 CREATE TABLE Receita (
@@ -68,7 +70,7 @@ CREATE TABLE Receita (
     cpf_cliente VARCHAR(14) NOT NULL,
     FOREIGN KEY (crm_medico) REFERENCES Medico(crm),
     FOREIGN KEY (cpf_cliente) REFERENCES Cliente(cpf)
-);
+) ENGINE=InnoDB;
 
 -- Tabela Item_Receita
 CREATE TABLE Item_Receita (
@@ -79,7 +81,7 @@ CREATE TABLE Item_Receita (
     PRIMARY KEY (id_receita, cod_barras),
     FOREIGN KEY (id_receita) REFERENCES Receita(id_receita),
     FOREIGN KEY (cod_barras) REFERENCES Produto(cod_barras)
-);
+) ENGINE=InnoDB;
 
 -- Tabela Item_Venda
 CREATE TABLE Item_Venda (
@@ -94,7 +96,7 @@ CREATE TABLE Item_Venda (
     FOREIGN KEY (cod_barras) REFERENCES Produto(cod_barras),
     FOREIGN KEY (cod_barras, lote) REFERENCES Estoque(cod_barras, lote),
     FOREIGN KEY (id_receita) REFERENCES Receita(id_receita)
-);
+) ENGINE=InnoDB;
 
 -- Receita usada no maximo em uma venda finalizada
 CREATE TABLE Uso_Receita (
@@ -103,4 +105,27 @@ CREATE TABLE Uso_Receita (
     utilizada_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_receita) REFERENCES Receita(id_receita),
     FOREIGN KEY (id_venda) REFERENCES Venda(id_venda)
-);
+) ENGINE=InnoDB;
+
+-- Indices para consultas frequentes
+CREATE INDEX idx_produto_ativo_nome ON Produto(ativo, nome);
+CREATE INDEX idx_produto_ativo_tipo ON Produto(ativo, tipo);
+CREATE INDEX idx_produto_marca ON Produto(marca);
+
+CREATE INDEX idx_estoque_cod_validade ON Estoque(cod_barras, data_validade);
+CREATE INDEX idx_estoque_validade ON Estoque(data_validade);
+
+CREATE INDEX idx_venda_data ON Venda(data);
+CREATE INDEX idx_venda_cliente_data ON Venda(cpf_cliente, data);
+CREATE INDEX idx_venda_funcionario_data ON Venda(cpf_funcionario, data);
+CREATE INDEX idx_venda_status_data ON Venda(status, data);
+
+CREATE INDEX idx_receita_cliente_data ON Receita(cpf_cliente, data);
+CREATE INDEX idx_receita_medico_data ON Receita(crm_medico, data);
+
+CREATE INDEX idx_item_receita_cod ON Item_Receita(cod_barras, id_receita);
+
+CREATE INDEX idx_item_venda_receita ON Item_Venda(id_receita);
+CREATE INDEX idx_item_venda_prod_lote ON Item_Venda(cod_barras, lote);
+
+CREATE INDEX idx_uso_receita_venda ON Uso_Receita(id_venda);
