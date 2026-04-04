@@ -1,3 +1,13 @@
+<?php if (!empty($finalizadaId)): ?>
+	<div class="card">
+		<h3>Venda finalizada</h3>
+		<p class="muted">A venda #<?= (int) $finalizadaId ?> foi finalizada e a tela foi limpa para um novo atendimento.</p>
+		<div class="pills">
+			<a class="btn-soft" href="/vendas/listar?venda_id=<?= (int) $finalizadaId ?>">Ver ultima venda finalizada</a>
+		</div>
+	</div>
+<?php endif; ?>
+
 <div class="card">
 	<h2>Nova venda</h2>
 	<?php if (empty($venda)): ?>
@@ -21,7 +31,7 @@
 			<button type="submit">Iniciar venda</button>
 		</form>
 	<?php else: ?>
-		<p><strong>Venda #<?= (int) $venda['id'] ?></strong> | Total atual: R$ <?= number_format((float) $venda['valor_total'], 2, ',', '.') ?></p>
+		<p><strong>Venda #<?= (int) $venda['id'] ?></strong> | Total atual: R$ <?= number_format((float) $venda['valor_total'], 2, ',', '.') ?> | Itens: <?= count($itens) ?></p>
 		<p class="helper-text">Pesquise produtos com busca hibrida (banco + refinamento local) e confirme a quantidade para adicionar no fluxo FEFO.</p>
 
 		<form method="POST" action="/vendas/adicionar-item" id="form-adicionar-item">
@@ -38,8 +48,9 @@
 			</div>
 
 			<label>Quantidade</label>
-			<input type="number" name="quantidade" min="1" required>
+			<input type="number" name="quantidade" min="1" step="1" value="1" required>
 			<p class="helper-text" id="venda-qtd-helper">Selecione um produto para visualizar estoque disponivel.</p>
+			<p class="helper-text" id="venda-subtotal-prev">Subtotal previsto: R$ 0,00</p>
 
 			<div id="venda-receita-wrap" style="display: none;">
 				<label for="venda-receita-id">Receita valida para este cliente/produto</label>
@@ -52,40 +63,61 @@
 				<p class="helper-text" id="venda-receita-helper">Para produto controlado, escolha uma receita valida.</p>
 			</div>
 
-			<button type="submit">Adicionar item (FEFO)</button>
+			<button type="submit">Adicionar item</button>
 		</form>
 
 		<h3>Itens da venda</h3>
-		<div class="table-wrap">
-			<table>
-				<thead>
-					<tr>
-						<th>Produto</th>
-						<th>Lote</th>
-						<th>Validade</th>
-						<th>Qtd</th>
-						<th>Preco</th>
-						<th>Subtotal</th>
-					</tr>
-				</thead>
-				<tbody>
-					<?php if (empty($itens)): ?>
-						<tr><td colspan="6">Nenhum item adicionado.</td></tr>
-					<?php else: ?>
-						<?php foreach ($itens as $item): ?>
-							<tr>
-								<td><?= htmlspecialchars($item['produto_nome'], ENT_QUOTES, 'UTF-8') ?></td>
-								<td><?= htmlspecialchars($item['numero_lote'], ENT_QUOTES, 'UTF-8') ?></td>
-								<td><?= htmlspecialchars($item['validade'], ENT_QUOTES, 'UTF-8') ?></td>
-								<td><?= (int) $item['quantidade'] ?></td>
-								<td>R$ <?= number_format((float) $item['preco_unitario_momento'], 2, ',', '.') ?></td>
-								<td>R$ <?= number_format((float) $item['subtotal'], 2, ',', '.') ?></td>
-							</tr>
-						<?php endforeach; ?>
-					<?php endif; ?>
-				</tbody>
-			</table>
-		</div>
+		<form method="POST" action="/vendas/finalizar" style="margin-top: 8px;">
+			<input type="hidden" name="venda_id" value="<?= (int) $venda['id'] ?>">
+			<div class="table-wrap">
+				<table>
+					<thead>
+						<tr>
+							<th>ID</th>
+							<th>Produto</th>
+							<th>Lote</th>
+							<th>Validade</th>
+							<th>Qtd</th>
+							<th>Preco</th>
+							<th>Subtotal</th>
+							<th>Acoes</th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php if (empty($itens)): ?>
+							<tr><td colspan="8">Nenhum item adicionado.</td></tr>
+						<?php else: ?>
+							<?php foreach ($itens as $item): ?>
+								<tr>
+									<td><?= (int) $item['id'] ?></td>
+									<td><?= htmlspecialchars($item['produto_nome'], ENT_QUOTES, 'UTF-8') ?></td>
+									<td><?= htmlspecialchars($item['numero_lote'], ENT_QUOTES, 'UTF-8') ?></td>
+									<td><?= htmlspecialchars($item['validade'], ENT_QUOTES, 'UTF-8') ?></td>
+									<td>
+										<input type="number" name="quantidades[<?= (int) $item['id'] ?>]" min="1" step="1" value="<?= (int) $item['quantidade'] ?>" required style="max-width: 90px;">
+									</td>
+									<td>R$ <?= number_format((float) $item['preco_unitario_momento'], 2, ',', '.') ?></td>
+									<td>R$ <?= number_format((float) $item['subtotal'], 2, ',', '.') ?></td>
+									<td>
+										<button
+											type="submit"
+											name="item_id"
+											value="<?= (int) $item['id'] ?>"
+											formaction="/vendas/remover-item"
+											formmethod="post"
+											onclick="return confirm('Remover este item da venda?');"
+											class="btn-subtle"
+										>Remover</button>
+									</td>
+								</tr>
+							<?php endforeach; ?>
+						<?php endif; ?>
+					</tbody>
+				</table>
+			</div>
+
+			<button type="submit" style="margin-top: 12px;" <?= empty($itens) ? 'disabled' : '' ?>>Finalizar venda</button>
+		</form>
 	<?php endif; ?>
 </div>
 
@@ -122,12 +154,13 @@
 		const status = document.getElementById('venda-search-status');
 		const selectedWrap = document.getElementById('venda-produto-selecionado');
 		const qtdHelper = document.getElementById('venda-qtd-helper');
+		const subtotalPrev = document.getElementById('venda-subtotal-prev');
 		const receitaWrap = document.getElementById('venda-receita-wrap');
 		const receitaSelect = document.getElementById('venda-receita-id');
 		const receitaHelper = document.getElementById('venda-receita-helper');
 		const receitaLink = document.getElementById('venda-link-nova-receita');
 
-		if (!form || !inputSearch || !inputProdutoId || !inputQtd || !list || !status || !selectedWrap || !qtdHelper || !receitaWrap || !receitaSelect || !receitaHelper || !receitaLink) {
+		if (!form || !inputSearch || !inputProdutoId || !inputQtd || !list || !status || !selectedWrap || !qtdHelper || !subtotalPrev || !receitaWrap || !receitaSelect || !receitaHelper || !receitaLink) {
 			return;
 		}
 
@@ -247,6 +280,7 @@
 			if (!selectedItem) {
 				inputQtd.setCustomValidity('');
 				qtdHelper.textContent = 'Selecione um produto para visualizar estoque disponivel.';
+				subtotalPrev.textContent = 'Subtotal previsto: R$ 0,00';
 				return;
 			}
 
@@ -254,6 +288,7 @@
 			const qtd = Number(inputQtd.value || 0);
 
 			qtdHelper.textContent = `Estoque disponivel para venda: ${stockText(stock)}.`;
+			subtotalPrev.textContent = `Subtotal previsto: R$ ${money((Number(selectedItem.preco_atual || 0) * Math.max(1, qtd || 0)))}`;
 
 			if (stock > 0 && qtd > stock) {
 				inputQtd.setCustomValidity('Quantidade acima do estoque disponivel para venda.');

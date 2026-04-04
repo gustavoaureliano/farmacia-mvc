@@ -510,7 +510,8 @@
 			<a href="/receitas">Receitas</a>
 			<a href="/clientes">Clientes</a>
 			<a href="/funcionarios">Funcionarios</a>
-			<a href="/vendas/nova">Vendas</a>
+			<a href="/vendas/nova">Nova venda</a>
+			<a href="/vendas/listar">Historico vendas</a>
 		</nav>
 	</div>
 </header>
