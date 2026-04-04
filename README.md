@@ -51,12 +51,12 @@ cd /home/gustavo/farmacia-mvc
 composer install
 ```
 
-5. Configure banco/usuario e schema:
+5. Configure banco/usuario e schema (modelo atual):
 
 ```bash
 sudo mariadb < database/setup_db_single_user.sql
-mariadb -u farmacia_user -p farmacia_db < database/schema.sql
-mariadb -u farmacia_user -p farmacia_db < database/seed.sql
+mariadb -u farmacia_user -p farmacia_db < database/farmacia_db.sql
+mariadb -u farmacia_user -p farmacia_db < database/seed_new_schema.sql
 ```
 
 6. Configure variaveis de ambiente:
@@ -99,14 +99,14 @@ sudo systemctl enable --now apache2
 sudo mariadb-secure-installation
 ```
 
-4. No projeto, instale dependencias e banco:
+4. No projeto, instale dependencias e banco (modelo atual):
 
 ```bash
 cd /home/gustavo/farmacia-mvc
 composer install
 sudo mariadb < database/setup_db_single_user.sql
-mariadb -u farmacia_user -p farmacia_db < database/schema.sql
-mariadb -u farmacia_user -p farmacia_db < database/seed.sql
+mariadb -u farmacia_user -p farmacia_db < database/farmacia_db.sql
+mariadb -u farmacia_user -p farmacia_db < database/seed_new_schema.sql
 ```
 
 5. Configure variaveis de ambiente:
@@ -190,11 +190,26 @@ sudo systemctl restart apache2
 
 - `/home`
 - `/produtos`
-- `/lotes`
+- `/estoque`
 - `/receitas`
 - `/clientes`
 - `/funcionarios`
 - `/vendas/nova`
+
+## Scripts de banco
+
+- `database/farmacia_db.sql`: schema oficial atual (PKs naturais, InnoDB, utf8mb4, indices).
+- `database/seed_new_schema.sql`: carga recomendada para ambiente novo (dados base + complemento legado adaptado + Golgi convertido).
+- `database/import_golgi_drugs.sql`: importador Golgi no formato do schema novo.
+- `database/schema.sql` e `database/seed.sql`: legado (nao recomendado para inicializar ambiente novo).
+
+## Reset rapido do banco (sem backup)
+
+```bash
+mysql -u root -p -e "DROP DATABASE IF EXISTS farmacia_db; CREATE DATABASE farmacia_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u root -p < database/farmacia_db.sql
+mysql -u root -p < database/seed_new_schema.sql
+```
 
 ## Regra FEFO implementada
 
