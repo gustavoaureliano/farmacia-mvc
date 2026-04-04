@@ -28,4 +28,42 @@ class LoteDAO
 
 		return (int) $this->conn->lastInsertId();
 	}
+
+	public function listar(): array
+	{
+		$sql = 'SELECT le.*, p.nome AS produto_nome
+				FROM lotes_estoque le
+				INNER JOIN produtos p ON p.id = le.produto_id
+				ORDER BY le.validade ASC, le.id ASC';
+		$stmt = $this->conn->query($sql);
+
+		return $stmt->fetchAll();
+	}
+
+	public function resumoEstoquePorProduto(): array
+	{
+		$sql = 'SELECT p.id AS produto_id,
+				   p.nome AS produto_nome,
+				   COALESCE(SUM(CASE
+					   WHEN le.quantidade_disponivel > 0 AND le.validade >= CURDATE() THEN le.quantidade_disponivel
+					   ELSE 0
+				   END), 0) AS estoque_valido,
+				   MIN(CASE
+					   WHEN le.quantidade_disponivel > 0 AND le.validade >= CURDATE() THEN le.validade
+					   ELSE NULL
+				   END) AS proxima_validade,
+				   COALESCE(SUM(CASE
+					   WHEN le.quantidade_disponivel > 0 AND le.validade >= CURDATE() THEN 1
+					   ELSE 0
+				   END), 0) AS lotes_validos
+				FROM produtos p
+				LEFT JOIN lotes_estoque le ON le.produto_id = p.id
+				WHERE p.ativo = 1
+				GROUP BY p.id, p.nome
+				ORDER BY estoque_valido DESC, p.nome ASC';
+
+		$stmt = $this->conn->query($sql);
+
+		return $stmt->fetchAll();
+	}
 }

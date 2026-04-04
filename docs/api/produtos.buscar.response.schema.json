@@ -1,0 +1,49 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$id": "produtos.buscar.response.schema.json",
+	"title": "ProdutosBuscarResponse",
+	"type": "object",
+	"required": ["ok", "query", "total", "items"],
+	"properties": {
+		"ok": {
+			"type": "boolean"
+		},
+		"query": {
+			"type": "string"
+		},
+		"total": {
+			"type": "integer",
+			"minimum": 0
+		},
+		"items": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"id",
+					"nome",
+					"principio_ativo",
+					"marca_laboratorio",
+					"tipo",
+					"exige_receita",
+					"preco_atual",
+					"codigo_barras",
+					"estoque_disponivel"
+				],
+				"properties": {
+					"id": { "type": "integer", "minimum": 1 },
+					"nome": { "type": "string" },
+					"principio_ativo": { "type": "string" },
+					"marca_laboratorio": { "type": "string" },
+					"tipo": { "type": "string", "enum": ["generico", "similar", "referencia"] },
+					"exige_receita": { "type": "integer", "enum": [0, 1] },
+					"preco_atual": { "type": "number" },
+					"codigo_barras": { "type": "string" },
+					"estoque_disponivel": { "type": "integer", "minimum": 0 }
+				},
+				"additionalProperties": false
+			}
+		}
+	},
+	"additionalProperties": false
+}

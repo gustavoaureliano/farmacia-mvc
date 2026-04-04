@@ -95,3 +95,7 @@ CREATE TABLE itens_venda (
 
 CREATE INDEX idx_lote_produto_validade ON lotes_estoque(produto_id, validade);
 CREATE INDEX idx_item_venda ON itens_venda(venda_id);
+CREATE INDEX idx_produtos_ativo_nome ON produtos(ativo, nome);
+CREATE INDEX idx_produtos_ativo_tipo ON produtos(ativo, tipo);
+CREATE INDEX idx_produtos_principio ON produtos(principio_ativo);
+CREATE INDEX idx_produtos_marca ON produtos(marca_laboratorio);

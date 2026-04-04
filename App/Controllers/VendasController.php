@@ -5,8 +5,11 @@ namespace App\Controllers;
 use App\DAO\ClienteDAO;
 use App\DAO\FuncionarioDAO;
 use App\DAO\ProdutoDAO;
+use App\DAO\ReceitaDAO;
 use App\DAO\VendaDAO;
 use Exception;
+use RuntimeException;
+use Throwable;
 
 class VendasController extends Controller
 {
@@ -14,6 +17,7 @@ class VendasController extends Controller
 	private ClienteDAO $clienteDAO;
 	private FuncionarioDAO $funcionarioDAO;
 	private ProdutoDAO $produtoDAO;
+	private ReceitaDAO $receitaDAO;
 
 	public function __construct(array $segments = [])
 	{
@@ -22,6 +26,7 @@ class VendasController extends Controller
 		$this->clienteDAO = new ClienteDAO();
 		$this->funcionarioDAO = new FuncionarioDAO();
 		$this->produtoDAO = new ProdutoDAO();
+		$this->receitaDAO = new ReceitaDAO();
 	}
 
 	public function executar(): void
@@ -35,6 +40,11 @@ class VendasController extends Controller
 
 		if ($action === 'adicionar-item' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 			$this->adicionarItem();
+			return;
+		}
+
+		if ($action === 'receitas-validas') {
+			$this->receitasValidas();
 			return;
 		}
 
@@ -98,5 +108,71 @@ class VendasController extends Controller
 		}
 
 		$this->redirect('/vendas/nova?venda_id=' . $vendaId);
+	}
+
+	private function receitasValidas(): void
+	{
+		$vendaId = (int) ($this->request['venda_id'] ?? 0);
+		$produtoId = (int) ($this->request['produto_id'] ?? 0);
+
+		if ($vendaId <= 0 || $produtoId <= 0) {
+			$this->respondJson([
+				'ok' => false,
+				'items' => [],
+				'message' => 'Parametros invalidos.',
+			], 422);
+			return;
+		}
+
+		try {
+			$venda = $this->vendaDAO->buscarVenda($vendaId);
+			if ($venda === null) {
+				throw new RuntimeException('Venda nao encontrada.');
+			}
+
+			$clienteId = isset($venda['cliente_id']) ? (int) $venda['cliente_id'] : 0;
+			if ($clienteId <= 0) {
+				$this->respondJson([
+					'ok' => true,
+					'items' => [],
+					'message' => 'Venda sem cliente vinculado.',
+				], 200);
+				return;
+			}
+
+			$receitas = $this->receitaDAO->listarValidasParaClienteProduto($clienteId, $produtoId);
+
+			$items = [];
+			foreach ($receitas as $receita) {
+				$items[] = [
+					'id' => (int) $receita['id'],
+					'data_receita' => (string) $receita['data_receita'],
+					'medico_nome' => (string) $receita['medico_nome'],
+					'crm' => (string) $receita['crm'],
+				];
+			}
+
+			$this->respondJson([
+				'ok' => true,
+				'items' => $items,
+				'message' => empty($items) ? 'Nenhuma receita valida encontrada.' : 'Receitas carregadas.',
+			], 200);
+			return;
+		} catch (Throwable $e) {
+			$this->respondJson([
+				'ok' => false,
+				'items' => [],
+				'message' => 'Falha ao consultar receitas.',
+			], 500);
+			return;
+		}
+	}
+
+	private function respondJson(array $payload, int $statusCode): void
+	{
+		http_response_code($statusCode);
+		header('Content-Type: application/json; charset=UTF-8');
+		echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+		exit;
 	}
 }

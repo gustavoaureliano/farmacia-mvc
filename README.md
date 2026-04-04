@@ -190,6 +190,8 @@ sudo systemctl restart apache2
 
 - `/home`
 - `/produtos`
+- `/lotes`
+- `/receitas`
 - `/clientes`
 - `/funcionarios`
 - `/vendas/nova`
