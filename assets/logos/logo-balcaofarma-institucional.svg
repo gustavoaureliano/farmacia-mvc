@@ -14,6 +14,6 @@
 	<rect x="17" y="58" width="44" height="8" rx="4" fill="#0f4f8d" opacity="0.26"/>
 
 	<text x="86" y="38" font-family="Manrope, Segoe UI, sans-serif" font-size="30" font-weight="800" fill="#ffffff">Balcão</text>
-	<text x="206" y="38" font-family="Manrope, Segoe UI, sans-serif" font-size="30" font-weight="800" fill="#8fcbff">Farma</text>
+	<text x="186" y="38" font-family="Manrope, Segoe UI, sans-serif" font-size="30" font-weight="800" fill="#8fcbff">Farma</text>
 	<text x="87" y="60" font-family="Manrope, Segoe UI, sans-serif" font-size="11" letter-spacing="1.5" fill="#d3e8ff">GESTÃO FARMACÊUTICA</text>
 </svg>
