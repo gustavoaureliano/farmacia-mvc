@@ -1,5 +1,9 @@
 <?php
+$baseUrl = (string) ($GLOBALS['BASE_URL'] ?? '');
 $returnToSeguro = isset($returnTo) && is_string($returnTo) ? $returnTo : null;
+$returnToHref = $returnToSeguro !== null && str_starts_with($returnToSeguro, '/')
+	? $baseUrl . $returnToSeguro
+	: $returnToSeguro;
 $clienteSelecionado = isset($clienteIdSelecionado) && is_string($clienteIdSelecionado) ? $clienteIdSelecionado : '';
 $produtoSelecionado = isset($produtoIdSelecionado) && is_string($produtoIdSelecionado) ? $produtoIdSelecionado : '';
 $vendaOrigem = null;
@@ -17,9 +21,9 @@ if ($returnToSeguro !== null) {
 	<div class="section-head">
 		<h2>Nova receita</h2>
 		<?php if ($returnToSeguro !== null): ?>
-			<a class="btn-inline" href="<?= htmlspecialchars($returnToSeguro, ENT_QUOTES, 'UTF-8') ?>">Voltar para venda</a>
+			<a class="btn-inline" href="<?= htmlspecialchars((string) $returnToHref, ENT_QUOTES, 'UTF-8') ?>">Voltar para venda</a>
 		<?php else: ?>
-			<a class="btn-inline" href="/receitas">Voltar para receitas</a>
+			<a class="btn-inline" href="<?= htmlspecialchars($baseUrl . '/receitas', ENT_QUOTES, 'UTF-8') ?>">Voltar para receitas</a>
 		<?php endif; ?>
 	</div>
 
@@ -27,7 +31,7 @@ if ($returnToSeguro !== null) {
 		<p class="helper-text">Voce veio da tela de venda<?= $vendaOrigem !== null && $vendaOrigem > 0 ? ' #' . $vendaOrigem : '' ?>. Ao salvar, o sistema retorna automaticamente para continuar o atendimento.</p>
 	<?php endif; ?>
 
-	<form method="POST" action="/receitas/salvar">
+	<form method="POST" action="<?= htmlspecialchars($baseUrl . '/receitas/salvar', ENT_QUOTES, 'UTF-8') ?>">
 		<?php if ($returnToSeguro !== null): ?>
 			<input type="hidden" name="return_to" value="<?= htmlspecialchars($returnToSeguro, ENT_QUOTES, 'UTF-8') ?>">
 		<?php endif; ?>

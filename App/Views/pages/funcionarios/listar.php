@@ -1,6 +1,7 @@
+<?php $baseUrl = (string) ($GLOBALS['BASE_URL'] ?? ''); ?>
 <div class="card">
 	<h2>Funcionarios</h2>
-	<p><a href="/funcionarios/novo">Novo funcionario</a></p>
+	<p><a href="<?= htmlspecialchars($baseUrl . '/funcionarios/novo', ENT_QUOTES, 'UTF-8') ?>">Novo funcionario</a></p>
 	<div class="table-wrap">
 		<table>
 			<thead>

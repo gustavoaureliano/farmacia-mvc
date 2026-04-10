@@ -9,23 +9,6 @@ class ClientesController extends Controller
 {
 	private ClienteDAO $clienteDAO;
 
-	private function baseUrl(): string
-	{
-		return (string) ($GLOBALS['BASE_URL'] ?? '');
-	}
-
-	private function url(string $path): string
-	{
-		$base = $this->baseUrl();
-		if ($base === '') {
-			return $path;
-		}
-		if ($path === '' || $path[0] !== '/') {
-			return $path;
-		}
-		return $base . $path;
-	}
-
 	public function __construct(array $segments = [])
 	{
 		parent::__construct($segments);
@@ -92,7 +75,8 @@ class ClientesController extends Controller
 	private function editar(): void
 	{
 		$cpf = (string) ($this->request['cpf'] ?? '');
-		$returnTo = (string) ($this->request['return_to'] ?? $this->url('/clientes'));
+		$returnToRaw = (string) ($this->request['return_to'] ?? '');
+		$returnTo = $this->sanitizeInternalPath($returnToRaw) ?? '/clientes';
 
 		$cliente = $this->clienteDAO->buscarPorCpf($cpf);
 		if ($cliente === null) {
@@ -101,7 +85,7 @@ class ClientesController extends Controller
 		}
 
 		$this->addParam('cliente', $cliente);
-		$this->addParam('returnTo', $returnTo);
+		$this->addParam('returnTo', $this->url($returnTo));
 		$this->render('clientes/editar');
 	}
 
@@ -109,10 +93,8 @@ class ClientesController extends Controller
 	{
 		$cpfOriginal = (string) ($this->request['cpf_original'] ?? '');
 		$cpfNovo = (string) ($this->request['cpf_novo'] ?? '');
-		$returnTo = trim((string) ($this->request['return_to'] ?? ''));
-		if ($returnTo === '') {
-			$returnTo = $this->url('/clientes');
-		}
+		$returnToRaw = (string) ($this->request['return_to'] ?? '');
+		$returnTo = $this->sanitizeInternalPath($returnToRaw) ?? '/clientes';
 
 		$data = [
 			'nome' => trim((string) ($this->request['nome'] ?? '')),
@@ -129,7 +111,7 @@ class ClientesController extends Controller
 		try {
 			$this->clienteDAO->atualizar($cpfOriginal, $data);
 			$_SESSION['flash_success'] = 'Cliente atualizado com sucesso.';
-			$this->redirect($returnTo);
+			$this->redirect($this->url($returnTo));
 		} catch (DomainException $e) {
 			$_SESSION['flash_error'] = $e->getMessage();
 			$this->redirect($this->url('/clientes/editar?cpf=' . urlencode($cpfOriginal) . '&return_to=' . urlencode($returnTo)));
@@ -154,5 +136,27 @@ class ClientesController extends Controller
 			$_SESSION['flash_error'] = 'Falha ao excluir cliente: ' . $e->getMessage();
 			$this->redirect($this->url('/clientes'));
 		}
+	}
+
+	private function sanitizeInternalPath(string $path): ?string
+	{
+		$path = trim($path);
+		if ($path === '') {
+			return null;
+		}
+
+		if (!str_starts_with($path, '/')) {
+			return null;
+		}
+
+		if (str_starts_with($path, '//')) {
+			return null;
+		}
+
+		if (preg_match('/^[a-z][a-z0-9+.-]*:/i', $path) === 1) {
+			return null;
+		}
+
+		return $path;
 	}
 }

@@ -74,21 +74,21 @@ class LotesController extends Controller
 
 		if ($data['cod_barras'] === '' || $data['numero_lote'] === '' || $data['validade'] === '' || $data['quantidade_disponivel'] <= 0) {
 			$_SESSION['flash_error'] = 'Informe produto, lote, validade e quantidade valida.';
-			$this->redirect($redirectNovo);
+			$this->redirect($this->url($redirectNovo));
 		}
 
 		try {
 			$this->loteDAO->criar($data);
 			$_SESSION['flash_success'] = 'Entrada de estoque cadastrada com sucesso.';
 			if ($returnTo !== null) {
-				$this->redirect($returnTo);
+				$this->redirect($this->url($returnTo));
 				return;
 			}
-			$this->redirect('/estoque');
+			$this->redirect($this->url('/estoque'));
 			return;
 		} catch (Throwable $e) {
 			$_SESSION['flash_error'] = 'Falha ao cadastrar entrada de estoque. Verifique se o numero do lote ja existe para o produto.';
-			$this->redirect($redirectNovo);
+			$this->redirect($this->url($redirectNovo));
 		}
 	}
 

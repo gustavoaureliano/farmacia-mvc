@@ -145,12 +145,12 @@ class VendasController extends Controller
 
 		if ($funcionarioId === '') {
 			$_SESSION['flash_error'] = 'Selecione um funcionario.';
-			$this->redirect('/vendas/nova');
+			$this->redirect($this->url('/vendas/nova'));
 		}
 
 		$vendaId = $this->vendaDAO->criarVenda($clienteId, $funcionarioId);
 		$_SESSION['flash_success'] = 'Venda iniciada com sucesso.';
-		$this->redirect('/vendas/nova?venda_id=' . $vendaId);
+		$this->redirect($this->url('/vendas/nova?venda_id=' . $vendaId));
 	}
 
 	private function adicionarItem(): void
@@ -163,7 +163,7 @@ class VendasController extends Controller
 
 		if ($vendaId <= 0 || $produtoId === '' || $quantidade <= 0) {
 			$_SESSION['flash_error'] = 'Informe venda, produto e quantidade validos.';
-			$this->redirect('/vendas/nova?venda_id=' . $vendaId);
+			$this->redirect($this->url('/vendas/nova?venda_id=' . $vendaId));
 		}
 
 		try {
@@ -173,7 +173,7 @@ class VendasController extends Controller
 			$_SESSION['flash_error'] = $e->getMessage();
 		}
 
-		$this->redirect('/vendas/nova?venda_id=' . $vendaId);
+		$this->redirect($this->url('/vendas/nova?venda_id=' . $vendaId));
 	}
 
 	private function atualizarItem(): void
@@ -185,7 +185,7 @@ class VendasController extends Controller
 
 		if ($vendaId <= 0 || $codBarras === '' || $lote === '' || $quantidade <= 0) {
 			$_SESSION['flash_error'] = 'Informe venda, item e quantidade validos.';
-			$this->redirect('/vendas/nova?venda_id=' . $vendaId);
+			$this->redirect($this->url('/vendas/nova?venda_id=' . $vendaId));
 		}
 
 		try {
@@ -195,7 +195,7 @@ class VendasController extends Controller
 			$_SESSION['flash_error'] = $e->getMessage();
 		}
 
-		$this->redirect('/vendas/nova?venda_id=' . $vendaId);
+		$this->redirect($this->url('/vendas/nova?venda_id=' . $vendaId));
 	}
 
 	private function removerItem(): void
@@ -213,7 +213,7 @@ class VendasController extends Controller
 
 		if ($vendaId <= 0 || $codBarras === '' || $lote === '') {
 			$_SESSION['flash_error'] = 'Informe venda e item validos.';
-			$this->redirect('/vendas/nova?venda_id=' . $vendaId);
+			$this->redirect($this->url('/vendas/nova?venda_id=' . $vendaId));
 		}
 
 		try {
@@ -223,7 +223,7 @@ class VendasController extends Controller
 			$_SESSION['flash_error'] = $e->getMessage();
 		}
 
-		$this->redirect('/vendas/nova?venda_id=' . $vendaId);
+		$this->redirect($this->url('/vendas/nova?venda_id=' . $vendaId));
 	}
 
 	private function finalizar(): void
@@ -231,7 +231,7 @@ class VendasController extends Controller
 		$vendaId = (int) ($this->request['venda_id'] ?? 0);
 		if ($vendaId <= 0) {
 			$_SESSION['flash_error'] = 'Venda invalida para finalizar.';
-			$this->redirect('/vendas/nova');
+			$this->redirect($this->url('/vendas/nova'));
 		}
 
 		$quantidadesRaw = $this->request['quantidades'] ?? [];
@@ -241,11 +241,11 @@ class VendasController extends Controller
 			$this->vendaDAO->sincronizarQuantidadesParaFinalizacao($vendaId, $quantidades);
 			$this->vendaDAO->finalizarVenda($vendaId);
 			$_SESSION['flash_success'] = 'Venda #' . $vendaId . ' finalizada com sucesso.';
-			$this->redirect('/vendas/nova?finalizada_id=' . $vendaId);
+			$this->redirect($this->url('/vendas/nova?finalizada_id=' . $vendaId));
 			return;
 		} catch (Exception $e) {
 			$_SESSION['flash_error'] = $e->getMessage();
-			$this->redirect('/vendas/nova?venda_id=' . $vendaId);
+			$this->redirect($this->url('/vendas/nova?venda_id=' . $vendaId));
 		}
 	}
 
@@ -256,7 +256,7 @@ class VendasController extends Controller
 
 		if ($vendaId <= 0) {
 			$_SESSION['flash_error'] = 'Venda invalida para cancelamento.';
-			$this->redirect('/vendas/listar');
+			$this->redirect($this->url('/vendas/listar'));
 		}
 
 		try {
@@ -267,11 +267,11 @@ class VendasController extends Controller
 		}
 
 		if ($returnTo !== null) {
-			$this->redirect($returnTo);
+			$this->redirect($this->url($returnTo));
 			return;
 		}
 
-		$this->redirect('/vendas/listar?venda_id=' . $vendaId);
+		$this->redirect($this->url('/vendas/listar?venda_id=' . $vendaId));
 	}
 
 	private function receitasValidas(): void

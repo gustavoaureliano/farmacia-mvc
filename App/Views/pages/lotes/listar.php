@@ -1,7 +1,8 @@
+<?php $baseUrl = (string) ($GLOBALS['BASE_URL'] ?? ''); ?>
 <div class="card">
 	<div class="section-head">
 		<h2>Estoque</h2>
-		<a class="btn-inline" href="/estoque/novo">Nova entrada</a>
+		<a class="btn-inline" href="<?= htmlspecialchars($baseUrl . '/estoque/novo', ENT_QUOTES, 'UTF-8') ?>">Nova entrada</a>
 	</div>
 	<p class="muted">Resumo de estoque com alertas de validade (ate <?= (int) ($diasRiscoAtencao ?? 90) ?> dias).</p>
 

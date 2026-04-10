@@ -38,4 +38,23 @@ class Controller
 		header('Location: ' . $path);
 		exit;
 	}
+
+	protected function baseUrl(): string
+	{
+		return (string) ($GLOBALS['BASE_URL'] ?? '');
+	}
+
+	protected function url(string $path): string
+	{
+		$base = $this->baseUrl();
+		if ($base === '') {
+			return $path;
+		}
+
+		if ($path === '' || $path[0] !== '/') {
+			return $path;
+		}
+
+		return $base . $path;
+	}
 }

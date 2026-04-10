@@ -1,6 +1,7 @@
+<?php $baseUrl = (string) ($GLOBALS['BASE_URL'] ?? ''); ?>
 <div class="card">
 	<h2>Novo funcionario</h2>
-	<form method="POST" action="/funcionarios/salvar">
+	<form method="POST" action="<?= htmlspecialchars($baseUrl . '/funcionarios/salvar', ENT_QUOTES, 'UTF-8') ?>">
 		<input name="nome" placeholder="Nome" required>
 		<select name="cargo" required>
 			<option value="atendente">Atendente</option>

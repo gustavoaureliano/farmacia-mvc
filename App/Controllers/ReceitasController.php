@@ -89,10 +89,10 @@ class ReceitasController extends Controller
 
 			$_SESSION['flash_success'] = 'Receita #' . $receitaId . ' cadastrada com sucesso.';
 			if ($returnTo !== null) {
-				$this->redirect($returnTo);
+				$this->redirect($this->url($returnTo));
 			}
 
-			$this->redirect('/receitas');
+			$this->redirect($this->url('/receitas'));
 			return;
 		} catch (Throwable $e) {
 			$_SESSION['flash_error'] = 'Falha ao salvar receita.';
@@ -114,10 +114,10 @@ class ReceitasController extends Controller
 		}
 
 		if (empty($params)) {
-			return '/receitas/novo';
+			return $this->url('/receitas/novo');
 		}
 
-		return '/receitas/novo?' . http_build_query($params);
+		return $this->url('/receitas/novo?' . http_build_query($params));
 	}
 
 	private function sanitizeInternalPath(string $path): ?string

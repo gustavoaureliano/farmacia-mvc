@@ -48,16 +48,16 @@ class FuncionariosController extends Controller
 
 		if ($data['nome'] === '' || strlen($data['cpf']) !== 11) {
 			$_SESSION['flash_error'] = 'Informe nome e CPF valido com 11 digitos.';
-			$this->redirect('/funcionarios/novo');
+			$this->redirect($this->url('/funcionarios/novo'));
 		}
 
 		if ($data['cargo'] === 'farmaceutico' && $data['crf'] === '') {
 			$_SESSION['flash_error'] = 'Farmaceutico exige CRF.';
-			$this->redirect('/funcionarios/novo');
+			$this->redirect($this->url('/funcionarios/novo'));
 		}
 
 		$this->funcionarioDAO->criar($data);
 		$_SESSION['flash_success'] = 'Funcionario cadastrado com sucesso.';
-		$this->redirect('/funcionarios');
+		$this->redirect($this->url('/funcionarios'));
 	}
 }

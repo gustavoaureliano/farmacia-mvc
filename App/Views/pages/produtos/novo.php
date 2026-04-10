@@ -1,17 +1,23 @@
-<?php $returnToSeguro = isset($returnTo) && is_string($returnTo) ? $returnTo : null; ?>
+<?php
+$baseUrl = (string) ($GLOBALS['BASE_URL'] ?? '');
+$returnToSeguro = isset($returnTo) && is_string($returnTo) ? $returnTo : null;
+$returnToHref = $returnToSeguro !== null && str_starts_with($returnToSeguro, '/')
+	? $baseUrl . $returnToSeguro
+	: $returnToSeguro;
+?>
 
 <div class="card">
 	<div class="section-head">
 		<h2>Novo produto</h2>
 		<?php if ($returnToSeguro !== null): ?>
-			<a class="btn-inline" href="<?= htmlspecialchars($returnToSeguro, ENT_QUOTES, 'UTF-8') ?>">Voltar</a>
+			<a class="btn-inline" href="<?= htmlspecialchars((string) $returnToHref, ENT_QUOTES, 'UTF-8') ?>">Voltar</a>
 		<?php else: ?>
-			<a class="btn-inline" href="/produtos">Voltar para produtos</a>
+			<a class="btn-inline" href="<?= htmlspecialchars($baseUrl . '/produtos', ENT_QUOTES, 'UTF-8') ?>">Voltar para produtos</a>
 		<?php endif; ?>
 	</div>
 	<p class="helper-text">Opcionalmente, voce pode cadastrar o lote inicial junto com o produto.</p>
 
-	<form method="POST" action="/produtos/salvar">
+	<form method="POST" action="<?= htmlspecialchars($baseUrl . '/produtos/salvar', ENT_QUOTES, 'UTF-8') ?>">
 		<?php if ($returnToSeguro !== null): ?>
 			<input type="hidden" name="return_to" value="<?= htmlspecialchars($returnToSeguro, ENT_QUOTES, 'UTF-8') ?>">
 		<?php endif; ?>

@@ -1,9 +1,10 @@
+<?php $baseUrl = (string) ($GLOBALS['BASE_URL'] ?? ''); ?>
 <?php if (!empty($finalizadaId)): ?>
 	<div class="card">
 		<h3>Venda finalizada</h3>
 		<p class="muted">A venda #<?= (int) $finalizadaId ?> foi finalizada e a tela foi limpa para um novo atendimento.</p>
 		<div class="pills">
-			<a class="btn-soft" href="/vendas/listar?venda_id=<?= (int) $finalizadaId ?>">Ver ultima venda finalizada</a>
+			<a class="btn-soft" href="<?= htmlspecialchars($baseUrl . '/vendas/listar?venda_id=' . (int) $finalizadaId, ENT_QUOTES, 'UTF-8') ?>">Ver ultima venda finalizada</a>
 		</div>
 	</div>
 <?php endif; ?>
@@ -11,7 +12,7 @@
 <div class="card">
 	<h2>Nova venda</h2>
 	<?php if (empty($venda)): ?>
-		<form method="POST" action="/vendas/criar">
+		<form method="POST" action="<?= htmlspecialchars($baseUrl . '/vendas/criar', ENT_QUOTES, 'UTF-8') ?>">
 			<label>Cliente (opcional)</label>
 			<select name="cliente_id">
 				<option value="">Sem cliente</option>
@@ -46,7 +47,7 @@
 		<?php endif; ?>
 
 		<?php if ($vendaAberta): ?>
-			<form method="POST" action="/vendas/adicionar-item" id="form-adicionar-item">
+			<form method="POST" action="<?= htmlspecialchars($baseUrl . '/vendas/adicionar-item', ENT_QUOTES, 'UTF-8') ?>" id="form-adicionar-item">
 				<input type="hidden" name="venda_id" value="<?= (int) $venda['id'] ?>">
 				<input type="hidden" name="produto_id" id="venda-produto-id" required>
 				<input type="hidden" id="venda-cliente-id" value="<?= isset($venda['cliente_id']) && $venda['cliente_id'] !== null ? htmlspecialchars((string) $venda['cliente_id'], ENT_QUOTES, 'UTF-8') : '' ?>">
@@ -80,7 +81,7 @@
 		<?php endif; ?>
 
 		<h3>Itens da venda</h3>
-		<form method="POST" action="/vendas/finalizar" style="margin-top: 8px;">
+		<form method="POST" action="<?= htmlspecialchars($baseUrl . '/vendas/finalizar', ENT_QUOTES, 'UTF-8') ?>" style="margin-top: 8px;">
 			<input type="hidden" name="venda_id" value="<?= (int) $venda['id'] ?>">
 			<div class="table-wrap">
 				<table>
@@ -116,7 +117,7 @@
 												type="submit"
 												name="item_key"
 												value="<?= htmlspecialchars($itemKey, ENT_QUOTES, 'UTF-8') ?>"
-												formaction="/vendas/remover-item"
+											formaction="<?= htmlspecialchars($baseUrl . '/vendas/remover-item', ENT_QUOTES, 'UTF-8') ?>"
 												formmethod="post"
 												onclick="return confirm('Remover este item da venda?');"
 												class="btn-subtle"
@@ -138,7 +139,7 @@
 		</form>
 
 		<?php if ($vendaAberta): ?>
-			<form method="POST" action="/vendas/cancelar" style="margin-top: 8px;">
+			<form method="POST" action="<?= htmlspecialchars($baseUrl . '/vendas/cancelar', ENT_QUOTES, 'UTF-8') ?>" style="margin-top: 8px;">
 				<input type="hidden" name="venda_id" value="<?= (int) $venda['id'] ?>">
 				<input type="hidden" name="return_to" value="<?= htmlspecialchars('/vendas/nova?venda_id=' . (int) $venda['id'], ENT_QUOTES, 'UTF-8') ?>">
 				<button type="submit" class="btn-subtle" onclick="return confirm('Cancelar esta venda? O estoque sera devolvido e receitas vinculadas serao liberadas.');">Cancelar venda</button>
@@ -166,8 +167,9 @@
 	?>
 	<script>
 	(() => {
-		const endpoint = '/produtos/buscar';
-		const receitasEndpoint = '/vendas/receitas-validas';
+		const baseUrl = <?= json_encode($baseUrl, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+		const endpoint = `${baseUrl}/produtos/buscar`;
+		const receitasEndpoint = `${baseUrl}/vendas/receitas-validas`;
 		const vendaId = <?= (int) $venda['id'] ?>;
 		const returnTo = `/vendas/nova?venda_id=${vendaId}`;
 
@@ -234,7 +236,7 @@
 			if (String(produtoId || '') !== '') {
 				params.set('produto_id', String(produtoId));
 			}
-			receitaLink.href = `/receitas/novo?${params.toString()}`;
+			receitaLink.href = `${baseUrl}/receitas/novo?${params.toString()}`;
 		};
 
 		const resetReceitaSection = () => {

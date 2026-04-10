@@ -119,20 +119,20 @@ class ProdutosController extends Controller
 			: 'Produto cadastrado com sucesso.';
 
 		if ($returnTo !== null) {
-			$this->redirect($this->appendProdutoIdToReturn($returnTo, $produtoCodBarras));
+			$this->redirect($this->url($this->appendProdutoIdToReturn($returnTo, $produtoCodBarras)));
 			return;
 		}
 
-		$this->redirect('/produtos');
+		$this->redirect($this->url('/produtos'));
 	}
 
 	private function buildNovoUrl(?string $returnTo): string
 	{
 		if ($returnTo === null) {
-			return '/produtos/novo';
+			return $this->url('/produtos/novo');
 		}
 
-		return '/produtos/novo?return_to=' . urlencode($returnTo);
+		return $this->url('/produtos/novo?return_to=' . urlencode($returnTo));
 	}
 
 	private function appendProdutoIdToReturn(string $returnTo, string $produtoCodBarras): string

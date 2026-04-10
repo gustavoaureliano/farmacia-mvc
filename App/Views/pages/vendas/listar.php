@@ -1,4 +1,5 @@
 <?php
+$baseUrl = (string) ($GLOBALS['BASE_URL'] ?? '');
 $filtrosAtuais = is_array($filtros ?? null) ? $filtros : [];
 $ordemAtual = is_string($ordem ?? null) ? $ordem : 'data_desc';
 
@@ -28,12 +29,12 @@ $queryResumo['modo'] = 'resumo';
 	<div class="section-head">
 		<h2>Historico de vendas</h2>
 		<div class="pills">
-			<a class="btn-inline" href="/vendas/nova">Nova venda</a>
+			<a class="btn-inline" href="<?= htmlspecialchars($baseUrl . '/vendas/nova', ENT_QUOTES, 'UTF-8') ?>">Nova venda</a>
 		</div>
 	</div>
 	<p class="muted">Visualize todas as vendas com detalhes por item e exporte CSV no formato detalhado ou resumido.</p>
 
-	<form method="GET" action="/vendas/listar" class="search-panel" style="display: grid; gap: 10px;">
+	<form method="GET" action="<?= htmlspecialchars($baseUrl . '/vendas/listar', ENT_QUOTES, 'UTF-8') ?>" class="search-panel" style="display: grid; gap: 10px;">
 		<div class="search-grid" style="grid-template-columns: repeat(6, minmax(140px, 1fr));">
 			<input type="number" min="1" name="venda_id" placeholder="ID da venda" value="<?= $vendaIdAtual > 0 ? $vendaIdAtual : '' ?>">
 			<input type="date" name="data_inicio" value="<?= htmlspecialchars($dataInicio, ENT_QUOTES, 'UTF-8') ?>">
@@ -65,9 +66,9 @@ $queryResumo['modo'] = 'resumo';
 		</div>
 		<div class="pills">
 			<button type="submit">Aplicar filtros</button>
-			<a class="btn-subtle" href="/vendas/listar">Limpar</a>
-			<a class="btn-soft" href="/vendas/exportar-csv?<?= htmlspecialchars(http_build_query($queryDetalhado), ENT_QUOTES, 'UTF-8') ?>">Exportar CSV (Detalhado)</a>
-			<a class="btn-soft" href="/vendas/exportar-csv?<?= htmlspecialchars(http_build_query($queryResumo), ENT_QUOTES, 'UTF-8') ?>">Exportar CSV (Resumo)</a>
+			<a class="btn-subtle" href="<?= htmlspecialchars($baseUrl . '/vendas/listar', ENT_QUOTES, 'UTF-8') ?>">Limpar</a>
+			<a class="btn-soft" href="<?= htmlspecialchars($baseUrl . '/vendas/exportar-csv?' . http_build_query($queryDetalhado), ENT_QUOTES, 'UTF-8') ?>">Exportar CSV (Detalhado)</a>
+			<a class="btn-soft" href="<?= htmlspecialchars($baseUrl . '/vendas/exportar-csv?' . http_build_query($queryResumo), ENT_QUOTES, 'UTF-8') ?>">Exportar CSV (Resumo)</a>
 		</div>
 	</form>
 
@@ -109,7 +110,7 @@ $queryResumo['modo'] = 'resumo';
 							<td>R$ <?= number_format((float) $venda['valor_total'], 2, ',', '.') ?></td>
 							<td>
 								<?php if ($statusVenda !== 'cancelada'): ?>
-									<form method="POST" action="/vendas/cancelar" style="margin: 0;">
+									<form method="POST" action="<?= htmlspecialchars($baseUrl . '/vendas/cancelar', ENT_QUOTES, 'UTF-8') ?>" style="margin: 0;">
 										<input type="hidden" name="venda_id" value="<?= $vendaId ?>">
 										<input type="hidden" name="return_to" value="<?= htmlspecialchars('/vendas/listar?venda_id=' . $vendaId, ENT_QUOTES, 'UTF-8') ?>">
 										<button type="submit" class="btn-subtle" onclick="return confirm('Cancelar a venda #<?= $vendaId ?>? O estoque sera devolvido e receitas vinculadas serao liberadas.');">Cancelar</button>

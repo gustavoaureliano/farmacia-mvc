@@ -1,7 +1,8 @@
+<?php $baseUrl = (string) ($GLOBALS['BASE_URL'] ?? ''); ?>
 <div class="card">
 	<div class="section-head">
 		<h2>Receitas</h2>
-		<a class="btn-inline" href="/receitas/novo">Nova receita</a>
+		<a class="btn-inline" href="<?= htmlspecialchars($baseUrl . '/receitas/novo', ENT_QUOTES, 'UTF-8') ?>">Nova receita</a>
 	</div>
 	<p class="muted">Cadastre receitas para liberar venda de produtos controlados.</p>
 

@@ -1,7 +1,8 @@
+<?php $baseUrl = (string) ($GLOBALS['BASE_URL'] ?? ''); ?>
 <div class="card">
 	<div class="section-head">
 		<h2>Produtos</h2>
-		<a class="btn-inline" href="/produtos/novo">Novo produto</a>
+		<a class="btn-inline" href="<?= htmlspecialchars($baseUrl . '/produtos/novo', ENT_QUOTES, 'UTF-8') ?>">Novo produto</a>
 	</div>
 	<p class="muted">Pesquise e filtre produtos por nome, codigo de barras, principio ativo e laboratorio.</p>
 
@@ -85,7 +86,8 @@ foreach ($produtos as $produto) {
 
 <script>
 (() => {
-	const endpoint = '/produtos/buscar';
+	const baseUrl = <?= json_encode($baseUrl, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+	const endpoint = `${baseUrl}/produtos/buscar`;
 	const inputQ = document.getElementById('produto-search-q');
 	const inputTipo = document.getElementById('produto-search-tipo');
 	const inputReceita = document.getElementById('produto-search-receita');
