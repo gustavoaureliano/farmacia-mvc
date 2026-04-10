@@ -15,9 +15,8 @@ class Connection
 			$host = getenv('DB_HOST') ?: '127.0.0.1';
 			$port = getenv('DB_PORT') ?: '3306';
 			$name = getenv('DB_NAME') ?: 'farmacia_db';
-			$user = getenv('DB_USER') ?: 'root';
-			$pass = getenv('DB_PASS') ?: '';
-
+			$user = getenv('DB_USER') ?: 'farmacia_user';
+			$pass = getenv('DB_PASS') ?: 'TROQUE_POR_UMA_SENHA_FORTE';
 			$dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $host, $port, $name);
 
 			try {

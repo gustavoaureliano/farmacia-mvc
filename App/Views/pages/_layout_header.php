@@ -4,7 +4,8 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>BalcãoFarma</title>
-	<link rel="stylesheet" href="/assets/css/mobile.css">
+	<?php $baseUrl = (string) ($GLOBALS['BASE_URL'] ?? ''); ?>
+	<link rel="stylesheet" href="<?= htmlspecialchars($baseUrl . '/assets/css/mobile.css', ENT_QUOTES, 'UTF-8') ?>">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
@@ -567,21 +568,21 @@
 <header>
 	<div class="header-row">
 		<div class="brand">
-			<a class="brand-link" href="/home" aria-label="Ir para o início" title="Ir para o início">
-				<img class="brand-logo" src="/assets/logos/logo-balcaofarma-institucional.svg" alt="BalcãoFarma">
+			<a class="brand-link" href="<?= htmlspecialchars($baseUrl . '/home', ENT_QUOTES, 'UTF-8') ?>" aria-label="Ir para o início" title="Ir para o início">
+				<img class="brand-logo" src="<?= htmlspecialchars($baseUrl . '/assets/logos/logo-balcaofarma-institucional.svg', ENT_QUOTES, 'UTF-8') ?>" alt="BalcãoFarma">
 			</a>
 		</div>
 		<button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="main-nav">
 			<span class="menu-icon"><span></span></span>
 		</button>
 		<nav id="main-nav" class="main-nav" aria-label="Navegação principal">
-			<a href="/produtos">Produtos</a>
-			<a href="/estoque">Estoque</a>
-			<a href="/receitas">Receitas</a>
-			<a href="/clientes">Clientes</a>
-			<a href="/funcionarios">Funcionarios</a>
-			<a href="/vendas/nova">Nova venda</a>
-			<a href="/vendas/listar">Historico vendas</a>
+			<a href="<?= htmlspecialchars($baseUrl . '/produtos', ENT_QUOTES, 'UTF-8') ?>">Produtos</a>
+			<a href="<?= htmlspecialchars($baseUrl . '/estoque', ENT_QUOTES, 'UTF-8') ?>">Estoque</a>
+			<a href="<?= htmlspecialchars($baseUrl . '/receitas', ENT_QUOTES, 'UTF-8') ?>">Receitas</a>
+			<a href="<?= htmlspecialchars($baseUrl . '/clientes', ENT_QUOTES, 'UTF-8') ?>">Clientes</a>
+			<a href="<?= htmlspecialchars($baseUrl . '/funcionarios', ENT_QUOTES, 'UTF-8') ?>">Funcionarios</a>
+			<a href="<?= htmlspecialchars($baseUrl . '/vendas/nova', ENT_QUOTES, 'UTF-8') ?>">Nova venda</a>
+			<a href="<?= htmlspecialchars($baseUrl . '/vendas/listar', ENT_QUOTES, 'UTF-8') ?>">Historico vendas</a>
 		</nav>
 		<div class="nav-backdrop" hidden></div>
 	</div>
