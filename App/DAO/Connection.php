@@ -12,11 +12,11 @@ class Connection
 	public static function getConn(): PDO
 	{
 		if (self::$conn === null) {
-			$host =  '127.0.0.1';
-			$port =  '3306';
-			$name =  'farmacia_db';
-			$user =  'farmacia_user';
-			$pass = 'TROQUE_POR_UMA_SENHA_FORTE';
+			$host = getenv('DB_HOST') ?: '127.0.0.1';
+			$port = getenv('DB_PORT') ?: '3306';
+			$name = getenv('DB_NAME') ?: 'farmacia_db';
+			$user = getenv('DB_USER') ?: 'farmacia_user';
+			$pass = getenv('DB_PASS') ?: 'TROQUE_POR_UMA_SENHA_FORTE';
 			$dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $host, $port, $name);
 
 			try {
