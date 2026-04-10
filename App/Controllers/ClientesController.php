@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\DAO\ClienteDAO;
+use DomainException;
 
 class ClientesController extends Controller
 {
@@ -28,6 +29,21 @@ class ClientesController extends Controller
 			return;
 		}
 
+		if ($action === 'editar') {
+			$this->editar();
+			return;
+		}
+
+		if ($action === 'atualizar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+			$this->atualizar();
+			return;
+		}
+
+		if ($action === 'excluir' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+			$this->excluir();
+			return;
+		}
+
 		$this->addParam('clientes', $this->clienteDAO->listar());
 		$this->render('clientes/listar');
 	}
@@ -46,8 +62,78 @@ class ClientesController extends Controller
 			$this->redirect('/clientes/novo');
 		}
 
-		$this->clienteDAO->criar($data);
-		$_SESSION['flash_success'] = 'Cliente cadastrado com sucesso.';
-		$this->redirect('/clientes');
+		try {
+			$this->clienteDAO->criar($data);
+			$_SESSION['flash_success'] = 'Cliente cadastrado com sucesso.';
+			$this->redirect('/clientes');
+		} catch (\Throwable $e) {
+			$_SESSION['flash_error'] = 'Falha ao cadastrar cliente: ' . $e->getMessage();
+			$this->redirect('/clientes/novo');
+		}
+	}
+
+	private function editar(): void
+	{
+		$cpf = (string) ($this->request['cpf'] ?? '');
+		$returnTo = (string) ($this->request['return_to'] ?? '/clientes');
+
+		$cliente = $this->clienteDAO->buscarPorCpf($cpf);
+		if ($cliente === null) {
+			$_SESSION['flash_error'] = 'Cliente nao encontrado.';
+			$this->redirect('/clientes');
+		}
+
+		$this->addParam('cliente', $cliente);
+		$this->addParam('returnTo', $returnTo);
+		$this->render('clientes/editar');
+	}
+
+	private function atualizar(): void
+	{
+		$cpf = (string) ($this->request['cpf'] ?? '');
+		$returnTo = trim((string) ($this->request['return_to'] ?? ''));
+		if ($returnTo === '') {
+			$returnTo = '/clientes';
+		}
+
+		$data = [
+			'nome' => trim((string) ($this->request['nome'] ?? '')),
+			'data_nascimento' => trim((string) ($this->request['data_nascimento'] ?? '')),
+			'telefone' => trim((string) ($this->request['telefone'] ?? '')),
+		];
+
+		if ($data['nome'] === '') {
+			$_SESSION['flash_error'] = 'Informe um nome valido.';
+			$this->redirect('/clientes/editar?cpf=' . urlencode($cpf) . '&return_to=' . urlencode($returnTo));
+		}
+
+		try {
+			$this->clienteDAO->atualizar($cpf, $data);
+			$_SESSION['flash_success'] = 'Cliente atualizado com sucesso.';
+			$this->redirect($returnTo);
+		} catch (DomainException $e) {
+			$_SESSION['flash_error'] = $e->getMessage();
+			$this->redirect('/clientes/editar?cpf=' . urlencode($cpf) . '&return_to=' . urlencode($returnTo));
+		} catch (\Throwable $e) {
+			$_SESSION['flash_error'] = 'Falha ao atualizar cliente: ' . $e->getMessage();
+			$this->redirect('/clientes/editar?cpf=' . urlencode($cpf) . '&return_to=' . urlencode($returnTo));
+		}
+	}
+
+	private function excluir(): void
+	{
+		$cpf = (string) ($this->request['cpf'] ?? '');
+
+		try {
+			$this->clienteDAO->excluir($cpf);
+			$_SESSION['flash_success'] = 'Cliente excluido com sucesso.';
+			$this->redirect('/clientes');
+		} catch (DomainException $e) {
+			$_SESSION['flash_error'] = $e->getMessage();
+			$this->redirect('/clientes');
+		} catch (\Throwable $e) {
+			$_SESSION['flash_error'] = 'Falha ao excluir cliente: ' . $e->getMessage();
+			$this->redirect('/clientes');
+		}
 	}
 }
