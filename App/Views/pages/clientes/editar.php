@@ -2,7 +2,8 @@
 /** @var array|null $cliente */
 $clienteSeguro = is_array($cliente ?? null) ? $cliente : null;
 $cpf = (string) ($clienteSeguro['cpf'] ?? '');
-$returnToSeguro = isset($returnTo) && is_string($returnTo) ? $returnTo : '/clientes';
+$baseUrl = (string) ($GLOBALS['BASE_URL'] ?? '');
+$returnToSeguro = isset($returnTo) && is_string($returnTo) ? $returnTo : ($baseUrl . '/clientes');
 ?>
 
 <div class="card">
@@ -14,7 +15,7 @@ $returnToSeguro = isset($returnTo) && is_string($returnTo) ? $returnTo : '/clien
 	<?php if ($clienteSeguro === null || $cpf === ''): ?>
 		<p class="muted">Cliente nao encontrado.</p>
 	<?php else: ?>
-		<form method="POST" action="/clientes/atualizar">
+		<form method="POST" action="<?= htmlspecialchars($baseUrl . '/clientes/atualizar', ENT_QUOTES, 'UTF-8') ?>">
 			<input type="hidden" name="cpf" value="<?= htmlspecialchars($cpf, ENT_QUOTES, 'UTF-8') ?>">
 			<input type="hidden" name="return_to" value="<?= htmlspecialchars($returnToSeguro, ENT_QUOTES, 'UTF-8') ?>">
 
