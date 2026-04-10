@@ -57,26 +57,61 @@ class ClienteDAO
 
 	public function atualizar(string $cpfOriginal, array $data): void
 	{
-		$cpfDigits = $this->cpfDigits($cpfOriginal);
-		if ($cpfDigits === '') {
+		$cpfOriginalDigits = $this->cpfDigits($cpfOriginal);
+		if ($cpfOriginalDigits === '') {
 			throw new DomainException('CPF invalido.');
 		}
 
-		$sql = "UPDATE Cliente
-				SET nome = :nome,
-					data_nascimento = :data_nascimento,
-					telefone = :telefone
-				WHERE REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), ' ', '') = :cpf";
+		$cpfNovo = (string) ($data['cpf_novo'] ?? $cpfOriginal);
+		$cpfNovoDigits = $this->cpfDigits($cpfNovo);
+		if ($cpfNovoDigits === '' || strlen($cpfNovoDigits) !== 11) {
+			throw new DomainException('CPF novo invalido. Informe 11 digitos.');
+		}
 
-		$stmt = $this->conn->prepare($sql);
-		$stmt->bindValue(':nome', $data['nome']);
-		$stmt->bindValue(':data_nascimento', $data['data_nascimento'] ?: null);
-		$stmt->bindValue(':telefone', $data['telefone'] ?: null);
-		$stmt->bindValue(':cpf', $cpfDigits);
-		$stmt->execute();
-
-		if ($stmt->rowCount() === 0) {
+		$clienteAtual = $this->buscarPorCpf($cpfOriginalDigits);
+		if ($clienteAtual === null) {
 			throw new DomainException('Cliente nao encontrado para atualizacao.');
+		}
+
+		$this->conn->beginTransaction();
+		try {
+			if ($cpfNovoDigits !== $cpfOriginalDigits) {
+				$vinculos = $this->contarVinculos($cpfOriginalDigits);
+				if (($vinculos['vendas'] ?? 0) > 0 || ($vinculos['receitas'] ?? 0) > 0) {
+					throw new DomainException('Nao e possivel alterar o CPF: existem vendas/receitas vinculadas a este cliente.');
+				}
+
+				$dup = $this->buscarPorCpf($cpfNovoDigits);
+				if ($dup !== null) {
+					throw new DomainException('Ja existe um cliente cadastrado com este CPF.');
+				}
+
+				$sqlCpf = "UPDATE Cliente
+						SET cpf = :cpf_novo
+						WHERE REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), ' ', '') = :cpf_original";
+				$stmtCpf = $this->conn->prepare($sqlCpf);
+				$stmtCpf->bindValue(':cpf_novo', $cpfNovoDigits);
+				$stmtCpf->bindValue(':cpf_original', $cpfOriginalDigits);
+				$stmtCpf->execute();
+			}
+
+			$sql = "UPDATE Cliente
+					SET nome = :nome,
+						data_nascimento = :data_nascimento,
+						telefone = :telefone
+					WHERE REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), ' ', '') = :cpf";
+
+			$stmt = $this->conn->prepare($sql);
+			$stmt->bindValue(':nome', $data['nome']);
+			$stmt->bindValue(':data_nascimento', $data['data_nascimento'] ?: null);
+			$stmt->bindValue(':telefone', $data['telefone'] ?: null);
+			$stmt->bindValue(':cpf', $cpfNovoDigits);
+			$stmt->execute();
+
+			$this->conn->commit();
+		} catch (\Throwable $e) {
+			$this->conn->rollBack();
+			throw $e;
 		}
 	}
 

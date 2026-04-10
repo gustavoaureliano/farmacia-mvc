@@ -16,11 +16,11 @@ $returnToSeguro = isset($returnTo) && is_string($returnTo) ? $returnTo : ($baseU
 		<p class="muted">Cliente nao encontrado.</p>
 	<?php else: ?>
 		<form method="POST" action="<?= htmlspecialchars($baseUrl . '/clientes/atualizar', ENT_QUOTES, 'UTF-8') ?>">
-			<input type="hidden" name="cpf" value="<?= htmlspecialchars($cpf, ENT_QUOTES, 'UTF-8') ?>">
+			<input type="hidden" name="cpf_original" value="<?= htmlspecialchars($cpf, ENT_QUOTES, 'UTF-8') ?>">
 			<input type="hidden" name="return_to" value="<?= htmlspecialchars($returnToSeguro, ENT_QUOTES, 'UTF-8') ?>">
 
 			<label>CPF</label>
-			<input value="<?= htmlspecialchars($cpf, ENT_QUOTES, 'UTF-8') ?>" disabled>
+			<input name="cpf_novo" value="<?= htmlspecialchars($cpf, ENT_QUOTES, 'UTF-8') ?>" maxlength="14" required>
 
 			<label>Nome</label>
 			<input name="nome" value="<?= htmlspecialchars((string) ($clienteSeguro['nome'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" required>

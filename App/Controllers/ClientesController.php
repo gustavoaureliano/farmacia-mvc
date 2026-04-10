@@ -9,6 +9,23 @@ class ClientesController extends Controller
 {
 	private ClienteDAO $clienteDAO;
 
+	private function baseUrl(): string
+	{
+		return (string) ($GLOBALS['BASE_URL'] ?? '');
+	}
+
+	private function url(string $path): string
+	{
+		$base = $this->baseUrl();
+		if ($base === '') {
+			return $path;
+		}
+		if ($path === '' || $path[0] !== '/') {
+			return $path;
+		}
+		return $base . $path;
+	}
+
 	public function __construct(array $segments = [])
 	{
 		parent::__construct($segments);
@@ -59,28 +76,28 @@ class ClientesController extends Controller
 
 		if ($data['nome'] === '' || strlen($data['cpf']) !== 11) {
 			$_SESSION['flash_error'] = 'Informe nome e CPF valido com 11 digitos.';
-			$this->redirect('/clientes/novo');
+			$this->redirect($this->url('/clientes/novo'));
 		}
 
 		try {
 			$this->clienteDAO->criar($data);
 			$_SESSION['flash_success'] = 'Cliente cadastrado com sucesso.';
-			$this->redirect('/clientes');
+			$this->redirect($this->url('/clientes'));
 		} catch (\Throwable $e) {
 			$_SESSION['flash_error'] = 'Falha ao cadastrar cliente: ' . $e->getMessage();
-			$this->redirect('/clientes/novo');
+			$this->redirect($this->url('/clientes/novo'));
 		}
 	}
 
 	private function editar(): void
 	{
 		$cpf = (string) ($this->request['cpf'] ?? '');
-		$returnTo = (string) ($this->request['return_to'] ?? '/clientes');
+		$returnTo = (string) ($this->request['return_to'] ?? $this->url('/clientes'));
 
 		$cliente = $this->clienteDAO->buscarPorCpf($cpf);
 		if ($cliente === null) {
 			$_SESSION['flash_error'] = 'Cliente nao encontrado.';
-			$this->redirect('/clientes');
+			$this->redirect($this->url('/clientes'));
 		}
 
 		$this->addParam('cliente', $cliente);
@@ -90,33 +107,35 @@ class ClientesController extends Controller
 
 	private function atualizar(): void
 	{
-		$cpf = (string) ($this->request['cpf'] ?? '');
+		$cpfOriginal = (string) ($this->request['cpf_original'] ?? '');
+		$cpfNovo = (string) ($this->request['cpf_novo'] ?? '');
 		$returnTo = trim((string) ($this->request['return_to'] ?? ''));
 		if ($returnTo === '') {
-			$returnTo = '/clientes';
+			$returnTo = $this->url('/clientes');
 		}
 
 		$data = [
 			'nome' => trim((string) ($this->request['nome'] ?? '')),
 			'data_nascimento' => trim((string) ($this->request['data_nascimento'] ?? '')),
 			'telefone' => trim((string) ($this->request['telefone'] ?? '')),
+			'cpf_novo' => $cpfNovo,
 		];
 
 		if ($data['nome'] === '') {
 			$_SESSION['flash_error'] = 'Informe um nome valido.';
-			$this->redirect('/clientes/editar?cpf=' . urlencode($cpf) . '&return_to=' . urlencode($returnTo));
+			$this->redirect($this->url('/clientes/editar?cpf=' . urlencode($cpfOriginal) . '&return_to=' . urlencode($returnTo)));
 		}
 
 		try {
-			$this->clienteDAO->atualizar($cpf, $data);
+			$this->clienteDAO->atualizar($cpfOriginal, $data);
 			$_SESSION['flash_success'] = 'Cliente atualizado com sucesso.';
 			$this->redirect($returnTo);
 		} catch (DomainException $e) {
 			$_SESSION['flash_error'] = $e->getMessage();
-			$this->redirect('/clientes/editar?cpf=' . urlencode($cpf) . '&return_to=' . urlencode($returnTo));
+			$this->redirect($this->url('/clientes/editar?cpf=' . urlencode($cpfOriginal) . '&return_to=' . urlencode($returnTo)));
 		} catch (\Throwable $e) {
 			$_SESSION['flash_error'] = 'Falha ao atualizar cliente: ' . $e->getMessage();
-			$this->redirect('/clientes/editar?cpf=' . urlencode($cpf) . '&return_to=' . urlencode($returnTo));
+			$this->redirect($this->url('/clientes/editar?cpf=' . urlencode($cpfOriginal) . '&return_to=' . urlencode($returnTo)));
 		}
 	}
 
@@ -127,13 +146,13 @@ class ClientesController extends Controller
 		try {
 			$this->clienteDAO->excluir($cpf);
 			$_SESSION['flash_success'] = 'Cliente excluido com sucesso.';
-			$this->redirect('/clientes');
+			$this->redirect($this->url('/clientes'));
 		} catch (DomainException $e) {
 			$_SESSION['flash_error'] = $e->getMessage();
-			$this->redirect('/clientes');
+			$this->redirect($this->url('/clientes'));
 		} catch (\Throwable $e) {
 			$_SESSION['flash_error'] = 'Falha ao excluir cliente: ' . $e->getMessage();
-			$this->redirect('/clientes');
+			$this->redirect($this->url('/clientes'));
 		}
 	}
 }
