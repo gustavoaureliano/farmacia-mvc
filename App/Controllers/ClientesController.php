@@ -85,7 +85,7 @@ class ClientesController extends Controller
 		}
 
 		$this->addParam('cliente', $cliente);
-		$this->addParam('returnTo', $this->url($returnTo));
+		$this->addParam('returnTo', $returnTo);
 		$this->render('clientes/editar');
 	}
 
@@ -126,8 +126,17 @@ class ClientesController extends Controller
 		$cpf = (string) ($this->request['cpf'] ?? '');
 
 		try {
-			$this->clienteDAO->excluir($cpf);
-			$_SESSION['flash_success'] = 'Cliente excluido com sucesso.';
+			$vinculos = $this->clienteDAO->contarVinculosPorCpf($cpf);
+			$temVinculos = ((int) ($vinculos['vendas'] ?? 0) > 0) || ((int) ($vinculos['receitas'] ?? 0) > 0);
+
+			if ($temVinculos) {
+				$this->clienteDAO->inativar($cpf);
+				$_SESSION['flash_success'] = 'Cliente possui historico e foi inativado com sucesso.';
+			} else {
+				$this->clienteDAO->excluir($cpf);
+				$_SESSION['flash_success'] = 'Cliente excluido com sucesso.';
+			}
+
 			$this->redirect($this->url('/clientes'));
 		} catch (DomainException $e) {
 			$_SESSION['flash_error'] = $e->getMessage();

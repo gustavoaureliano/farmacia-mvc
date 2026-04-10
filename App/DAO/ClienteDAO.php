@@ -4,6 +4,7 @@ namespace App\DAO;
 
 use DomainException;
 use PDO;
+use PDOException;
 
 class ClienteDAO
 {
@@ -16,8 +17,17 @@ class ClienteDAO
 
 	public function listar(): array
 	{
-		$stmt = $this->conn->query('SELECT cpf, nome, data_nascimento, telefone FROM Cliente ORDER BY nome ASC');
-		return $stmt->fetchAll();
+		try {
+			$stmt = $this->conn->query('SELECT cpf, nome, data_nascimento, telefone FROM Cliente WHERE ativo = 1 ORDER BY nome ASC');
+			return $stmt->fetchAll();
+		} catch (PDOException $e) {
+			if (str_contains($e->getMessage(), "Unknown column 'ativo'")) {
+				$stmt = $this->conn->query('SELECT cpf, nome, data_nascimento, telefone FROM Cliente ORDER BY nome ASC');
+				return $stmt->fetchAll();
+			}
+
+			throw $e;
+		}
 	}
 
 	public function buscarPorCpf(string $cpf): ?array
@@ -140,6 +150,53 @@ class ClienteDAO
 		if ($stmt->rowCount() === 0) {
 			throw new DomainException('Cliente nao encontrado para exclusao.');
 		}
+	}
+
+	public function inativar(string $cpf): void
+	{
+		$cpfDigits = $this->cpfDigits($cpf);
+		if ($cpfDigits === '') {
+			throw new DomainException('CPF invalido.');
+		}
+
+		$sql = "UPDATE Cliente
+				SET ativo = 0
+				WHERE REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), ' ', '') = :cpf";
+
+		try {
+			$stmt = $this->conn->prepare($sql);
+			$stmt->bindValue(':cpf', $cpfDigits);
+			$stmt->execute();
+		} catch (PDOException $e) {
+			if (str_contains($e->getMessage(), "Unknown column 'ativo'")) {
+				throw new DomainException('Inativacao indisponivel: atualize o schema do banco (coluna Cliente.ativo).');
+			}
+
+			throw $e;
+		}
+
+		if ($stmt->rowCount() === 0) {
+			$existsSql = "SELECT COUNT(*) FROM Cliente
+						WHERE REPLACE(REPLACE(REPLACE(cpf, '.', ''), '-', ''), ' ', '') = :cpf";
+			$existsStmt = $this->conn->prepare($existsSql);
+			$existsStmt->bindValue(':cpf', $cpfDigits);
+			$existsStmt->execute();
+			$exists = (int) $existsStmt->fetchColumn() > 0;
+
+			if (!$exists) {
+				throw new DomainException('Cliente nao encontrado para inativacao.');
+			}
+		}
+	}
+
+	public function contarVinculosPorCpf(string $cpf): array
+	{
+		$cpfDigits = $this->cpfDigits($cpf);
+		if ($cpfDigits === '') {
+			return ['vendas' => 0, 'receitas' => 0];
+		}
+
+		return $this->contarVinculos($cpfDigits);
 	}
 
 	private function contarVinculos(string $cpfDigits): array

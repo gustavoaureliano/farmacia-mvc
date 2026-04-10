@@ -8,7 +8,8 @@ CREATE TABLE Cliente (
     cpf VARCHAR(14) PRIMARY KEY, -- Considerando CPF como string para incluir pontos e tracos, se necessario
     nome VARCHAR(255) NOT NULL,
     data_nascimento DATE,
-    telefone VARCHAR(20)
+    telefone VARCHAR(20),
+    ativo BOOLEAN NOT NULL DEFAULT TRUE
 ) ENGINE=InnoDB;
 
 -- Tabela Funcionario
@@ -122,6 +123,8 @@ CREATE INDEX idx_venda_status_data ON Venda(status, data);
 
 CREATE INDEX idx_receita_cliente_data ON Receita(cpf_cliente, data);
 CREATE INDEX idx_receita_medico_data ON Receita(crm_medico, data);
+
+CREATE INDEX idx_cliente_ativo_nome ON Cliente(ativo, nome);
 
 CREATE INDEX idx_item_receita_cod ON Item_Receita(cod_barras, id_receita);
 

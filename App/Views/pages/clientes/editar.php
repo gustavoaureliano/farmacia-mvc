@@ -3,13 +3,16 @@
 $clienteSeguro = is_array($cliente ?? null) ? $cliente : null;
 $cpf = (string) ($clienteSeguro['cpf'] ?? '');
 $baseUrl = (string) ($GLOBALS['BASE_URL'] ?? '');
-$returnToSeguro = isset($returnTo) && is_string($returnTo) ? $returnTo : ($baseUrl . '/clientes');
+$returnToSeguro = isset($returnTo) && is_string($returnTo) ? $returnTo : '/clientes';
+$returnToHref = str_starts_with($returnToSeguro, '/')
+	? $baseUrl . $returnToSeguro
+	: $returnToSeguro;
 ?>
 
 <div class="card">
 	<div class="section-head">
 		<h2>Editar cliente</h2>
-		<a class="btn-inline" href="<?= htmlspecialchars($returnToSeguro, ENT_QUOTES, 'UTF-8') ?>">Voltar</a>
+		<a class="btn-inline" href="<?= htmlspecialchars($returnToHref, ENT_QUOTES, 'UTF-8') ?>">Voltar</a>
 	</div>
 
 	<?php if ($clienteSeguro === null || $cpf === ''): ?>
@@ -35,4 +38,3 @@ $returnToSeguro = isset($returnTo) && is_string($returnTo) ? $returnTo : ($baseU
 		</form>
 	<?php endif; ?>
 </div>
-

@@ -55,6 +55,10 @@ class Controller
 			return $path;
 		}
 
+		if ($path === $base || str_starts_with($path, $base . '/') || str_starts_with($path, $base . '?')) {
+			return $path;
+		}
+
 		return $base . $path;
 	}
 }
